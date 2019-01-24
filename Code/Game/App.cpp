@@ -11,7 +11,6 @@
 #include "Engine/Core/EventSystems.hpp"
 
 App* g_theApp = nullptr;
-//extern InputSystem* g_inputSystem;
 
 //------------------------------------------------------------------------------------------------------------------------------
 App::App()

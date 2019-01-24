@@ -211,6 +211,11 @@ void CreateOpenGLWindow( HINSTANCE applicationInstanceHandle, float clientAspect
 	HCURSOR cursor = LoadCursor( NULL, IDC_ARROW );
 	SetCursor( cursor );
 
+	//We have now made our window
+	//All we need now is the hWnd 
+
+
+	//Below this is GL 1 config code
 	PIXELFORMATDESCRIPTOR pixelFormatDescriptor;
 	memset( &pixelFormatDescriptor, 0, sizeof( pixelFormatDescriptor ) );
 	pixelFormatDescriptor.nSize = sizeof( pixelFormatDescriptor );
@@ -309,7 +314,7 @@ int WINAPI WinMain( HINSTANCE applicationInstanceHandle, HINSTANCE, LPSTR comman
 		RunMessagePump();
 		g_theApp->RunFrame();
 		SwapBuffers(g_displayDeviceContext);
-		Sleep(0);
+		//Sleep(0);
 	}
 
 	Shutdown();
