@@ -154,7 +154,7 @@ void Game::Render() const
 
 
 	//DebugRender();
-	/*
+	
 	if(!m_consoleDebugOnce)
 	{
 		EventArgs* args = new EventArgs("TestString", "This is a test");
@@ -164,7 +164,7 @@ void Game::Render() const
 	}
 
 	g_devConsole->Render(*g_renderContext, *g_mainCamera, DEVCONSOLE_LINE_HEIGHT);
-	*/
+	
 	
 	g_renderContext->ClearScreen(*g_clearScreenColor);
 
