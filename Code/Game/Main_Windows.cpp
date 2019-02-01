@@ -65,13 +65,10 @@ LRESULT CALLBACK WindowsMessageHandlingProcedure( HWND windowHandle, UINT wmMess
 			case T_KEY :
 			case P_KEY :
 			case UP_ARROW:
-				//Up arrow
-			case SPACE_KEY:
-				//Space key
-			case LEFT_ARROW:
-				//Left key
 			case RIGHT_ARROW:
-				//Right key
+			case LEFT_ARROW:
+			case DOWN_ARROW:
+			case SPACE_KEY:
 			case A_KEY:
 			case N_KEY:
 			case F1_KEY:
@@ -108,12 +105,11 @@ LRESULT CALLBACK WindowsMessageHandlingProcedure( HWND windowHandle, UINT wmMess
 				g_theApp->HandleQuitRequested();
 				return 0; // "Consumes" this message (tells Windows "okay, we handled it")
 			break;
-			case 38://Up arrow
-			case 32: //space key
-			case 37:
-			//Left key
-			case 39:
-			//Right key
+			case UP_ARROW:
+			case RIGHT_ARROW:
+			case LEFT_ARROW:
+			case DOWN_ARROW:
+			case SPACE_KEY:
 			g_theApp->HandleKeyReleased(asKey);
 			return 0;
 			break;

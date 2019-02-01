@@ -1,7 +1,8 @@
+//------------------------------------------------------------------------------------------------------------------------------
 #include "Game/App.hpp"
+//Engine Systems
 #include "Engine/Renderer/RenderContext.hpp"
 #include "Engine/Input/InputSystem.hpp"
-#include "Game/Game.hpp"
 #include "Engine/Audio/AudioSystem.hpp"
 #include "Engine/Core/XMLUtils/XMLUtils.hpp"
 #include "Engine/Core/NamedStrings.hpp"
@@ -9,19 +10,19 @@
 #include "Engine/Math/MathUtils.hpp"
 #include "Engine/Core/DevConsole.hpp"
 #include "Engine/Core/EventSystems.hpp"
+//Game Systems
+#include "Game/Game.hpp"
 
+//Globals
 App* g_theApp = nullptr;
 
 //------------------------------------------------------------------------------------------------------------------------------
 App::App()
-{
-	//Constructor method
-	
+{	
 }
 
 App::~App()
 {
-	//De constructor method
 }
 
 STATIC bool App::Command_Quit(EventArgs& args)
@@ -166,44 +167,45 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 {
 	switch(keyCode)
 	{
-	case T_KEY:
-		//Implement code to slow down the ship (deltaTime /= 10)
-		m_isSlowMo = true;
+		case T_KEY:
+			//Implement code to slow down the ship (deltaTime /= 10)
+			m_isSlowMo = true;
+			return true;
+		break;
+		case  P_KEY:
+			//Implement code to pause game (deltaTime = 0)
+			m_isPaused = !m_isPaused;
+			return true;
+		break;
+		case UP_ARROW:
+		case RIGHT_ARROW:
+		case LEFT_ARROW:
+		case DOWN_ARROW:	
+		case A_KEY:
+		case N_KEY:
+		case F1_KEY:
+		case F2_KEY:
+		case F3_KEY:
+		case F4_KEY:
+		case F5_KEY:
+		case F6_KEY:
+		case F7_KEY:
+		case SPACE_KEY:
+			m_game->HandleKeyPressed(keyCode);
+			return true;
+		break;
+		case F8_KEY:
+		//Kill and restart the app
+		delete m_game;
+		m_game = nullptr;
+		m_game = new Game();
+		m_game->StartUp();
 		return true;
-	break;
-	case  P_KEY:
-		//Implement code to pause game (deltaTime = 0)
-		m_isPaused = !m_isPaused;
-		return true;
-	break;
-	case UP_ARROW:
-	case RIGHT_ARROW:
-	case LEFT_ARROW:	
-	case A_KEY:
-	case N_KEY:
-	case F1_KEY:
-	case F2_KEY:
-	case F3_KEY:
-	case F4_KEY:
-	case F5_KEY:
-	case F6_KEY:
-	case F7_KEY:
-	case SPACE_KEY:
-		m_game->HandleKeyPressed(keyCode);
-		return true;
-	break;
-	case F8_KEY:
-	//Kill and restart the app
-	delete m_game;
-	m_game = nullptr;
-	m_game = new Game();
-	m_game->StartUp();
-	return true;
-	break;
-	default:
-		//Nothing to worry about
-		return false;
-	break;
+		break;
+		default:
+			//Nothing to worry about
+			return false;
+		break;
 	}
 }
 
@@ -211,28 +213,29 @@ bool App::HandleKeyReleased(unsigned char keyCode)
 {
 	switch(keyCode)
 	{
-	case 'T':
-		//Implement code to return deltaTime to original value
-		m_isSlowMo = false;
-		return true;
-	break;
-	case  'P':
-		//Implement code to un-pause game
-		m_isPaused = false;
-		return true;
-	break;
-	case 38:
-	case 32:
-	case 39:
-	case 37:
-		m_game->HandleKeyReleased(keyCode);
-		return true;
-	break;
+		case 'T':
+			//Implement code to return deltaTime to original value
+			m_isSlowMo = false;
+			return true;
+		break;
+		case  'P':
+			//Implement code to un-pause game
+			m_isPaused = false;
+			return true;
+		break;
+		case UP_ARROW:
+		case RIGHT_ARROW:
+		case LEFT_ARROW:
+		case DOWN_ARROW:
+		case SPACE_KEY:
+			m_game->HandleKeyReleased(keyCode);
+			return true;
+		break;
 
-	default:
-	//Nothing to worry about
-	return false;
-	break;
+		default:
+		//Nothing to worry about
+		return false;
+		break;
 	}
 
 
