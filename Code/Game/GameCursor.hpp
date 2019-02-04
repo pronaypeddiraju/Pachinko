@@ -22,6 +22,8 @@ public:
 	void			HandleKeyPressed( unsigned char keyCode );
 	void			HandleKeyReleased( unsigned char keyCode );
 
+	const Vec2&     GetCursorPositon() const;
+
 private:
 	Vec2			m_cursorPosition = Vec2::ZERO;
 	Rgba			m_cursorColor = Rgba::WHITE;
@@ -30,5 +32,5 @@ private:
 
 	//Movement Data
 	Vec2			m_movementVector = Vec2::ZERO;
-	float			m_cursorSpeed = 1.f;
+	float			m_cursorSpeed = 0.25f;
 };

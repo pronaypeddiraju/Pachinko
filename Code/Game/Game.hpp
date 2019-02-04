@@ -31,6 +31,7 @@ public:
 
 	void					HandleKeyReleased( unsigned char keyCode );
 	void					Render() const;
+	void					RenderAllGeometry() const;
 	void					PostRender();
 
 	void					Update( float deltaTime );

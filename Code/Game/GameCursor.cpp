@@ -24,6 +24,24 @@ void GameCursor::StartUp()
 void GameCursor::Update( float deltaTime )
 {
 	m_cursorPosition += m_movementVector * m_cursorSpeed;
+
+	if(m_cursorPosition.x < 0.f)
+	{
+		m_cursorPosition.x = 0.f;
+	}
+	else if(m_cursorPosition.x > WORLD_WIDTH)
+	{
+		m_cursorPosition.x = WORLD_WIDTH;
+	}
+
+	if(m_cursorPosition.y < 0.f)
+	{
+		m_cursorPosition.y = 0.f;
+	}
+	else if(m_cursorPosition.y > WORLD_HEIGHT)
+	{
+		m_cursorPosition.y = WORLD_HEIGHT;
+	}
 }
 
 void GameCursor::Render() const
@@ -35,8 +53,8 @@ void GameCursor::Render() const
 	Vec2 vertLineOffset = Vec2(0.f, m_cursorRingRadius);
 	Vec2 horLineOffset = Vec2(m_cursorRingRadius, 0.f);
 
-	AddVertsForLine2D(lineVerts, m_cursorPosition - vertLineOffset, m_cursorPosition + vertLineOffset, m_cursorThickness, m_cursorColor);
-	AddVertsForLine2D(lineVerts, m_cursorPosition - horLineOffset, m_cursorPosition + horLineOffset, m_cursorThickness, m_cursorColor);
+	AddVertsForLine2D(lineVerts, m_cursorPosition - vertLineOffset - Vec2(0.f, 0.5f), m_cursorPosition + vertLineOffset + Vec2(0.f, 0.5f), m_cursorThickness, m_cursorColor);
+	AddVertsForLine2D(lineVerts, m_cursorPosition - horLineOffset - Vec2(0.5f, 0.f), m_cursorPosition + horLineOffset + Vec2(0.5f, 0.f), m_cursorThickness, m_cursorColor);
 
 	g_renderContext->BindTexture(nullptr);
 	g_renderContext->DrawVertexArray(lineVerts);
@@ -48,16 +66,16 @@ void GameCursor::HandleKeyPressed( unsigned char keyCode )
 	switch( keyCode )
 	{
 		case UP_ARROW:
-		m_movementVector.y = 1.f;
+		m_movementVector.y += 1.f;
 		break;
 		case DOWN_ARROW:
-		m_movementVector.y = -1.f;
+		m_movementVector.y -= 1.f;
 		break;
 		case RIGHT_ARROW:
-		m_movementVector.x = 1.f;
+		m_movementVector.x += 1.f;
 		break;
 		case LEFT_ARROW:
-		m_movementVector.x = -1.f;
+		m_movementVector.x -= 1.f;
 		break;
 	}
 }
@@ -67,13 +85,22 @@ void GameCursor::HandleKeyReleased( unsigned char keyCode )
 	switch( keyCode )
 	{
 		case UP_ARROW:
+		m_movementVector.y = 0.f;
+		break;
 		case DOWN_ARROW:
 		m_movementVector.y = 0.f;
 		break;
 		case RIGHT_ARROW:
+		m_movementVector.x = 0.f;
+		break;
 		case LEFT_ARROW:
 		m_movementVector.x = 0.f;
 		break;
 	}
+}
+
+const Vec2& GameCursor::GetCursorPositon() const
+{
+	return m_cursorPosition;
 }
 

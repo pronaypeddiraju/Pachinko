@@ -6,8 +6,11 @@
 #include "Engine/Renderer/RenderContext.hpp"
 #include "Engine/Core/DevConsole.hpp"
 #include "Engine/Core/EventSystems.hpp"
+#include "Engine/Core/VertexUtils.hpp"
+#include "Engine/Math/Disc2D.hpp"
 //Game systems
 #include "Game/GameCursor.hpp"
+#include "Game/Geometry.hpp"
 
 //Globals
 Rgba* g_clearScreenColor = nullptr;
@@ -28,6 +31,7 @@ Game::Game()
 	m_squirrelFont = g_renderContext->CreateOrGetBitmapFontFromFile("SquirrelFixedFont");
 
 	g_devConsole->SetBitmapFont(*m_squirrelFont);
+	g_randomNumGen = new RandomNumberGenerator();
 }
 
 Game::~Game()
@@ -63,7 +67,15 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		case N_KEY:
 		break;
 		case F1_KEY:
-		//F1 spawns a static box on the cursor position
+		{
+			//F1 spawns a static box on the cursor position
+			float thickness = g_randomNumGen->GetRandomFloatInRange(0.25f, 2.0f);
+			Vec2 cursorPosition = m_gameCursor->GetCursorPositon();
+
+			AABB2* box = new AABB2(Vec2(cursorPosition.x - thickness, cursorPosition.y - thickness), Vec2(cursorPosition.x + thickness, cursorPosition.y + thickness));
+			Geometry* geometry = new Geometry( *box, cursorPosition);
+			Geometry::s_allGeometry.push_back(geometry);
+		}
 		break;
 		case F2_KEY:
 		//F2 spawns a static disc on the cursor position
@@ -104,6 +116,7 @@ void Game::HandleKeyReleased(unsigned char keyCode)
 		case RIGHT_ARROW:
 		case LEFT_ARROW:
 		m_gameCursor->HandleKeyReleased(keyCode);
+
 		break;
 		default:
 		break;
@@ -138,6 +151,8 @@ void Game::Render() const
 	
 	g_renderContext->ClearScreen(*g_clearScreenColor);
 
+	RenderAllGeometry();
+
 	m_gameCursor->Render();
 
 	g_renderContext->BindTexture(nullptr);
@@ -146,6 +161,42 @@ void Game::Render() const
 
 	g_renderContext->EndFrame();
 
+}
+
+void Game::RenderAllGeometry() const
+{
+	std::vector<Vertex_PCU> boxVerts;
+	std::vector<Vertex_PCU> ringVerts;
+
+	int allGeometry = static_cast<int>(Geometry::s_allGeometry.size());
+	for(int geometryIndex = 0; geometryIndex < allGeometry; geometryIndex++)
+	{
+		if(Geometry::s_allGeometry[geometryIndex]->m_geoType == TYPE_BOX)
+		{
+			//Draw box
+			if(Geometry::s_allGeometry[geometryIndex]->m_physicsType == TYPE_STATIC)
+			{
+				AddVertsForWireBox2D(boxVerts, *Geometry::s_allGeometry[geometryIndex]->GetBox(), 1.0f, Rgba::YELLOW );
+			}
+			else
+			{
+				AddVertsForWireBox2D(boxVerts, *Geometry::s_allGeometry[geometryIndex]->GetBox(), 1.0f, Rgba::BLUE );
+			}
+		}
+		else if (Geometry::s_allGeometry[geometryIndex]->m_geoType == TYPE_DISC)
+		{
+			Disc2D *disc = Geometry::s_allGeometry[geometryIndex]->GetDisc();
+			//Draw Disc
+			if(Geometry::s_allGeometry[geometryIndex]->m_physicsType == TYPE_STATIC)
+			{
+				AddVertsForRing2D(ringVerts, disc->GetCentre(), disc->GetRadius(), 1.0f, Rgba::YELLOW);
+			}
+			else
+			{
+				AddVertsForRing2D(ringVerts, disc->GetCentre(), disc->GetRadius(), 1.0f, Rgba::BLUE);
+			}
+		}
+	}
 }
 
 void Game::PostRender()

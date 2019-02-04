@@ -25,6 +25,9 @@
     <ClCompile Include="GameCursor.cpp">
       <Filter>Gameplay</Filter>
     </ClCompile>
+    <ClCompile Include="Geometry.cpp">
+      <Filter>Gameplay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Entity.hpp">
@@ -43,6 +46,9 @@
       <Filter>Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="GameCursor.hpp">
+      <Filter>Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry.hpp">
       <Filter>Gameplay</Filter>
     </ClInclude>
   </ItemGroup>
