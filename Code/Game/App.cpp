@@ -10,6 +10,7 @@
 #include "Engine/Math/MathUtils.hpp"
 #include "Engine/Core/DevConsole.hpp"
 #include "Engine/Core/EventSystems.hpp"
+#include "Engine/Math/PhysicsSystem.hpp"
 //Game Systems
 #include "Game/Game.hpp"
 
@@ -78,6 +79,10 @@ void App::StartUp()
 	//Create dev console
 	g_devConsole = new DevConsole();
 	g_devConsole->Startup();
+
+	//Create physics system
+	g_physicsSystem = new PhysicsSystem();
+	g_physicsSystem->SetGravity(Vec2(0.f, -9.8f));
 
 	//create the networking system
 	//g_networkSystem = new NetworkSystem();

@@ -8,6 +8,7 @@
 #include "Engine/Core/EventSystems.hpp"
 #include "Engine/Core/VertexUtils.hpp"
 #include "Engine/Math/Disc2D.hpp"
+#include "Engine/Math/PhysicsSystem.hpp"
 //Game systems
 #include "Game/GameCursor.hpp"
 #include "Game/Geometry.hpp"
@@ -69,12 +70,14 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		case F1_KEY:
 		{
 			//F1 spawns a static box on the cursor position
+			/*
 			float thickness = g_randomNumGen->GetRandomFloatInRange(0.25f, 2.0f);
 			Vec2 cursorPosition = m_gameCursor->GetCursorPositon();
 
 			AABB2* box = new AABB2(Vec2(cursorPosition.x - thickness, cursorPosition.y - thickness), Vec2(cursorPosition.x + thickness, cursorPosition.y + thickness));
 			Geometry* geometry = new Geometry( *box, cursorPosition);
 			Geometry::s_allGeometry.push_back(geometry);
+			*/
 		}
 		break;
 		case F2_KEY:
@@ -165,38 +168,16 @@ void Game::Render() const
 
 void Game::RenderAllGeometry() const
 {
-	std::vector<Vertex_PCU> boxVerts;
-	std::vector<Vertex_PCU> ringVerts;
+	// display debug information
+	g_physicsSystem->DebugRender( g_renderContext ); 
 
-	int allGeometry = static_cast<int>(Geometry::s_allGeometry.size());
-	for(int geometryIndex = 0; geometryIndex < allGeometry; geometryIndex++)
-	{
-		if(Geometry::s_allGeometry[geometryIndex]->m_geoType == TYPE_BOX)
-		{
-			//Draw box
-			if(Geometry::s_allGeometry[geometryIndex]->m_physicsType == TYPE_STATIC)
-			{
-				AddVertsForWireBox2D(boxVerts, *Geometry::s_allGeometry[geometryIndex]->GetBox(), 1.0f, Rgba::YELLOW );
-			}
-			else
-			{
-				AddVertsForWireBox2D(boxVerts, *Geometry::s_allGeometry[geometryIndex]->GetBox(), 1.0f, Rgba::BLUE );
-			}
-		}
-		else if (Geometry::s_allGeometry[geometryIndex]->m_geoType == TYPE_DISC)
-		{
-			Disc2D *disc = Geometry::s_allGeometry[geometryIndex]->GetDisc();
-			//Draw Disc
-			if(Geometry::s_allGeometry[geometryIndex]->m_physicsType == TYPE_STATIC)
-			{
-				AddVertsForRing2D(ringVerts, disc->GetCentre(), disc->GetRadius(), 1.0f, Rgba::YELLOW);
-			}
-			else
-			{
-				AddVertsForRing2D(ringVerts, disc->GetCentre(), disc->GetRadius(), 1.0f, Rgba::BLUE);
-			}
-		}
+	// overwrite the selected object with a white draw; 
+	/*
+	if (m_selected_object != nullptr) {
+		m_selected_object->m_rigidbody->debug_render( ctx, rgba::WHITE ); 
 	}
+	*/
+
 }
 
 void Game::PostRender()
@@ -212,9 +193,17 @@ void Game::Update( float deltaTime )
 
 	m_gameCursor->Update(deltaTime);
 
-	CheckCollisions();
+	UpdateGeometry(deltaTime);
 
 	ClearGarbageEntities();	
+}
+
+void Game::UpdateGeometry( float deltaTime )
+{
+	// let physics system play out
+	g_physicsSystem->Update(deltaTime); 
+
+	ClearGarbageEntities();
 }
 
 void Game::UpdateCamera(float deltaTime)
@@ -249,7 +238,17 @@ void Game::UpdateCamera(float deltaTime)
 void Game::ClearGarbageEntities()
 {
 	//Kill any entity off screen
-	
+	AABB2 bounds = AABB2(g_mainCamera->GetOrthoBottomLeft(), g_mainCamera->GetOrthoTopRight()); 
+
+	int numGeometry = static_cast<int>(m_allGeometry.size());
+	for (int geometryIndex = 0; geometryIndex < numGeometry; geometryIndex++)
+	{
+		//Kill object if below screen
+		if(m_allGeometry[geometryIndex]->m_transform.m_position.y < 0.f)
+		{
+			delete m_allGeometry[geometryIndex];
+		}
+	}
 }
 
 void Game::CheckCollisions()

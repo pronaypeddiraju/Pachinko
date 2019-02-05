@@ -1,52 +1,31 @@
 #pragma once
 //------------------------------------------------------------------------------------------------------------------------------
-#include <vector>
-//Engine Systems
-#include "Engine/Math/Vec2.hpp"
-//------------------------------------------------------------------------------------------------------------------------------
-struct AABB2;
-class Disc2D;
-//------------------------------------------------------------------------------------------------------------------------------
+#include "Engine/Math/Transform2.hpp"
+#include "Engine/Math/Rigidbody2D.hpp"
+
+class PhysicsSystem;
+class Collider2D;
 
 enum eGeometryType
 {
 	TYPE_UNKNOWN = -1,
 
-	TYPE_BOX,
-	TYPE_DISC,
+	AABB2_GEOMETRY,
+	DISC_GEOMETRY,
 
 	NUM_GEOMETRY_TYPES
-};
-
-enum ePhysicsType
-{
-	TYPE_UNKOWN = -1,
-
-	TYPE_STATIC,
-	TYPE_DYNAMIC,
-
-	NUM_PHYSICS_TYPES
 };
 
 class Geometry
 {
 public:
-	explicit Geometry( AABB2& box, const Vec2& centre);
-	explicit Geometry( Disc2D& disc, const Vec2& centre);
+	explicit Geometry(const PhysicsSystem& physicsSystem, eSimulationType simulationType, eGeometryType geometryType, const Vec2& cursorPosition);
 	~Geometry();
 
-	AABB2*				GetBox();
-	Disc2D*				GetDisc();
-
-	static std::vector<Geometry*>	s_allGeometry;
 
 public:
-	eGeometryType		m_geoType = TYPE_UNKNOWN;
-	ePhysicsType		m_physicsType = TYPE_UNKOWN;
-
-private:
-	AABB2*				m_boxGeometry = nullptr;
-	Disc2D*				m_discGeometry = nullptr;
-
-	Vec2				m_geoCentre = Vec2::ZERO;
+	Transform2				m_transform; 
+	Rigidbody2D				*m_rigidbody;
+	Collider2D				*m_collider; 
+	eGeometryType			m_geometryType = TYPE_UNKNOWN;
 };

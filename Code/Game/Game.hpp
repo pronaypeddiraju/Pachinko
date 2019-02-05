@@ -13,6 +13,7 @@ class BitmapFont;
 class SpriteAnimDefenition;
 class Image;
 class GameCursor;
+class Geometry;
 
 //------------------------------------------------------------------------------------------------------------------------------
 class Game
@@ -35,6 +36,7 @@ public:
 	void					PostRender();
 
 	void					Update( float deltaTime );
+	void					UpdateGeometry( float deltaTime );
 	void					UpdateCamera( float deltaTime );
 	
 	void					ClearGarbageEntities();
@@ -51,4 +53,5 @@ public:
 
 	BitmapFont*				m_squirrelFont = nullptr;
 	GameCursor*				m_gameCursor = nullptr;
+	std::vector<Geometry*>  m_allGeometry;
 };
