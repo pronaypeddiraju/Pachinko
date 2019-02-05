@@ -44,6 +44,9 @@ void Game::StartUp()
 {
 	g_clearScreenColor = new Rgba(0.f, 0.f, 0.f, 1.f);
 	m_gameCursor = new GameCursor();
+
+	Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, AABB2_GEOMETRY, Vec2(100.f, 10.f), true);
+	m_allGeometry.push_back(geometry);
 }
 
 STATIC bool Game::TestEvent(EventArgs& args)
@@ -70,24 +73,30 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		case F1_KEY:
 		{
 			//F1 spawns a static box on the cursor position
-			/*
-			float thickness = g_randomNumGen->GetRandomFloatInRange(0.25f, 2.0f);
-			Vec2 cursorPosition = m_gameCursor->GetCursorPositon();
-
-			AABB2* box = new AABB2(Vec2(cursorPosition.x - thickness, cursorPosition.y - thickness), Vec2(cursorPosition.x + thickness, cursorPosition.y + thickness));
-			Geometry* geometry = new Geometry( *box, cursorPosition);
-			Geometry::s_allGeometry.push_back(geometry);
-			*/
+			Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, AABB2_GEOMETRY, m_gameCursor->GetCursorPositon());
+			m_allGeometry.push_back(geometry);
 		}
 		break;
 		case F2_KEY:
-		//F2 spawns a static disc on the cursor position
+		{
+			//F2 spawns a static disc on the cursor position
+			Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, DISC_GEOMETRY, m_gameCursor->GetCursorPositon());
+			m_allGeometry.push_back(geometry);
+		}
 		break;
 		case F3_KEY:
-		//F3 spawns a dynamic box on the cursor position
+		{
+			//F3 spawns a dynamic box on the cursor position
+			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, AABB2_GEOMETRY, m_gameCursor->GetCursorPositon());
+			m_allGeometry.push_back(geometry);
+		}
 		break;
 		case F4_KEY:
-		//F4 spawns a dynamic disc on the cursor position
+		{
+			//F4 spawns a dynamic disc on the cursor position
+			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, DISC_GEOMETRY, m_gameCursor->GetCursorPositon());
+			m_allGeometry.push_back(geometry);
+		}
 		break;
 		case F5_KEY:
 		break;
@@ -133,25 +142,7 @@ void Game::Render() const
 	g_renderContext->BeginCamera(*g_mainCamera);
 
 	g_renderContext->BindTexture(nullptr);
-	
-	/*
-	//Lerp the screen color here
-	float time = GetCurrentTimeSeconds();
-	float lerpValue = (sin(time) + 1.0f) * 0.5f;
-	
-	g_clearScreenColor->b = lerpValue;
-
-	if(!m_consoleDebugOnce)
-	{
-	EventArgs* args = new EventArgs("TestString", "This is a test");
-	g_devConsole->Command_Test(*args);
-	g_devConsole->ExecuteCommandLine("Exec Health=25");
-	g_devConsole->ExecuteCommandLine("Exec Health=85 Armor=100");
-	}
-
-	g_devConsole->Render(*g_renderContext, *g_mainCamera, DEVCONSOLE_LINE_HEIGHT);
-	*/
-	
+		
 	g_renderContext->ClearScreen(*g_clearScreenColor);
 
 	RenderAllGeometry();

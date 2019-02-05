@@ -23,6 +23,7 @@ void GameCursor::StartUp()
 
 void GameCursor::Update( float deltaTime )
 {
+	UNUSED(deltaTime);
 	m_cursorPosition += m_movementVector * m_cursorSpeed;
 
 	if(m_cursorPosition.x < 0.f)

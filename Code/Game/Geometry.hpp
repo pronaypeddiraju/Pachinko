@@ -19,7 +19,7 @@ enum eGeometryType
 class Geometry
 {
 public:
-	explicit Geometry(const PhysicsSystem& physicsSystem, eSimulationType simulationType, eGeometryType geometryType, const Vec2& cursorPosition);
+	explicit Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType, eGeometryType geometryType, const Vec2& cursorPosition, bool staticFloor = false);
 	~Geometry();
 
 

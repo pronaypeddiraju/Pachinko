@@ -8,14 +8,13 @@
 //Game Systems
 #include "Game/GameCommon.hpp"
 
-Geometry::Geometry(const PhysicsSystem& physicsSystem, eSimulationType simulationType, eGeometryType geometryType, const Vec2& cursorPosition)
+Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType, eGeometryType geometryType, const Vec2& cursorPosition, bool staticFloor)
 {
-	// setup the physics for htis; 
-	PhysicsSystem physics = physicsSystem; 
-
 	// First, give it a rigidbody to represent itself in the physics system
-	m_rigidbody = physics.CreateRigidbody();
+	m_rigidbody = physicsSystem.CreateRigidbody(simulationType);
 	m_rigidbody->SetSimulationMode( simulationType ); 
+
+	m_transform.m_position = cursorPosition;
 
 	// give it a shape
 	switch( geometryType )
@@ -25,11 +24,30 @@ Geometry::Geometry(const PhysicsSystem& physicsSystem, eSimulationType simulatio
 	break;
 	case AABB2_GEOMETRY:
 	{
-		float thickness = g_randomNumGen->GetRandomFloatInRange(BOX_MIN_WIDTH, BOX_MAX_WIDTH);
+		float thickness;
+		Vec2 minBounds;
+		Vec2 maxBounds;
 
-		Vec2 minBounds = Vec2(cursorPosition.x - thickness, cursorPosition.y - thickness);
-		Vec2 maxBounds = Vec2(cursorPosition.x + thickness, cursorPosition.y + thickness);
+		if(!staticFloor)
+		{
+			thickness = g_randomNumGen->GetRandomFloatInRange(BOX_MIN_WIDTH, BOX_MAX_WIDTH);
+
+			minBounds = Vec2(cursorPosition.x - thickness, cursorPosition.y - thickness);
+			maxBounds = Vec2(cursorPosition.x + thickness, cursorPosition.y + thickness);
+		}
+		else
+		{
+			thickness = 80.f;
+			float height = 10.f;
+
+			minBounds = Vec2(cursorPosition.x - thickness, cursorPosition.y - height);
+			maxBounds = Vec2(cursorPosition.x + thickness, cursorPosition.y + height);
+		}
+
+		
 		m_collider = m_rigidbody->SetCollider( new AABB2Collider(minBounds, maxBounds) );  
+		m_collider->m_colliderType = COLLIDER_AABB2;
+		m_collider->m_rigidbody = m_rigidbody;
 	}
 	break;
 	case DISC_GEOMETRY:
@@ -37,6 +55,8 @@ Geometry::Geometry(const PhysicsSystem& physicsSystem, eSimulationType simulatio
 		float radius = g_randomNumGen->GetRandomFloatInRange(DISC_MIN_RADIUS, DISC_MAX_RADIUS);
 
 		m_collider = m_rigidbody->SetCollider(new Disc2DCollider(cursorPosition, radius));
+		m_collider->m_colliderType = COLLIDER_DISC;
+		m_collider->m_rigidbody = m_rigidbody;
 	}
 	break;
 	case NUM_GEOMETRY_TYPES:
@@ -48,6 +68,7 @@ Geometry::Geometry(const PhysicsSystem& physicsSystem, eSimulationType simulatio
 	
 	// give it a for the physics system to affect our object
 	m_rigidbody->SetObject( this, &m_transform ); 
+	physicsSystem.AddRigidbodyToVector(m_rigidbody);
 }
 
 Geometry::~Geometry()
