@@ -196,6 +196,8 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 		case F6_KEY:
 		case F7_KEY:
 		case SPACE_KEY:
+		case DEL_KEY:
+		case TAB_KEY:
 			m_game->HandleKeyPressed(keyCode);
 			return true;
 		break;

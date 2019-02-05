@@ -9,6 +9,7 @@
 #include "Engine/Core/VertexUtils.hpp"
 #include "Engine/Math/Disc2D.hpp"
 #include "Engine/Math/PhysicsSystem.hpp"
+#include "Engine/Math/MathUtils.hpp"
 //Game systems
 #include "Game/GameCursor.hpp"
 #include "Game/Geometry.hpp"
@@ -67,6 +68,47 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		m_gameCursor->HandleKeyPressed(keyCode);
 		break;
 		case SPACE_KEY:
+		{
+			//Deselect object
+			m_selectedGeometry = nullptr;
+			break;
+		}
+		case DEL_KEY:
+		{
+			//Destroy selected object
+			delete m_allGeometry[m_selectedIndex];
+			m_allGeometry[m_selectedIndex] = nullptr;
+			delete m_selectedGeometry;
+			m_selectedGeometry = nullptr;
+			break;
+		}
+		case TAB_KEY:
+		{
+			//Select object for possession
+			float distMinSq = 200.f;
+			m_selectedIndex = 0;
+			int numGeometry = static_cast<int>(m_allGeometry.size()) ;
+			for(int geometryIndex = 0; geometryIndex < numGeometry; geometryIndex++)
+			{
+				if(m_allGeometry[geometryIndex] == nullptr)
+				{
+					continue;
+				}
+
+				float distSq = GetDistanceSquared2D(m_gameCursor->GetCursorPositon(), m_allGeometry[geometryIndex]->m_transform.m_position);
+				if(distMinSq > distSq)
+				{
+					distMinSq = distSq;
+					m_selectedIndex = geometryIndex;
+				}
+			}
+
+			//Now select the actual object
+			m_selectedGeometry = m_allGeometry[m_selectedIndex];
+			m_selectedGeometry->m_rigidbody->SetSimulationMode(STATIC_SIMULATION);
+			m_gameCursor->SetCursorPosition(m_selectedGeometry->m_transform.m_position);
+			break;
+		}
 		case A_KEY:
 		case N_KEY:
 		break;
@@ -186,6 +228,13 @@ void Game::Update( float deltaTime )
 
 	UpdateGeometry(deltaTime);
 
+	if(m_selectedGeometry != nullptr)
+	{
+		m_selectedGeometry->m_transform.m_position = m_gameCursor->GetCursorPositon();
+		//m_selectedGeometry->m_rigidbody->m_transform.m_position = m_gameCursor->GetCursorPositon();
+		//m_selectedGeometry->m_rigidbody->m_object_transform->m_position = m_gameCursor->GetCursorPositon();
+	}
+
 	ClearGarbageEntities();	
 }
 
@@ -234,10 +283,16 @@ void Game::ClearGarbageEntities()
 	int numGeometry = static_cast<int>(m_allGeometry.size());
 	for (int geometryIndex = 0; geometryIndex < numGeometry; geometryIndex++)
 	{
+		if(m_allGeometry[geometryIndex] == nullptr)
+		{
+			continue;
+		}
+
 		//Kill object if below screen
 		if(m_allGeometry[geometryIndex]->m_transform.m_position.y < 0.f)
 		{
 			delete m_allGeometry[geometryIndex];
+			m_allGeometry[geometryIndex] = nullptr;
 		}
 	}
 }

@@ -69,6 +69,8 @@ LRESULT CALLBACK WindowsMessageHandlingProcedure( HWND windowHandle, UINT wmMess
 			case LEFT_ARROW:
 			case DOWN_ARROW:
 			case SPACE_KEY:
+			case DEL_KEY:
+			case TAB_KEY:
 			case A_KEY:
 			case N_KEY:
 			case F1_KEY:

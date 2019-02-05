@@ -100,6 +100,11 @@ void GameCursor::HandleKeyReleased( unsigned char keyCode )
 	}
 }
 
+void GameCursor::SetCursorPosition( const Vec2& position )
+{
+	m_cursorPosition = position;
+}
+
 const Vec2& GameCursor::GetCursorPositon() const
 {
 	return m_cursorPosition;

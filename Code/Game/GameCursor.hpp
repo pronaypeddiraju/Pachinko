@@ -22,6 +22,8 @@ public:
 	void			HandleKeyPressed( unsigned char keyCode );
 	void			HandleKeyReleased( unsigned char keyCode );
 
+	void			SetCursorPosition(const Vec2& position);
+
 	const Vec2&     GetCursorPositon() const;
 
 private:

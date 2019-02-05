@@ -54,4 +54,6 @@ public:
 	BitmapFont*				m_squirrelFont = nullptr;
 	GameCursor*				m_gameCursor = nullptr;
 	std::vector<Geometry*>  m_allGeometry;
+	Geometry*				m_selectedGeometry = nullptr;
+	int						m_selectedIndex;
 };
