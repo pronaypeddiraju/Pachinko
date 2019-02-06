@@ -10,6 +10,7 @@
 #include "Engine/Math/Disc2D.hpp"
 #include "Engine/Math/PhysicsSystem.hpp"
 #include "Engine/Math/MathUtils.hpp"
+
 //Game systems
 #include "Game/GameCursor.hpp"
 #include "Game/Geometry.hpp"
@@ -21,7 +22,7 @@ float g_shakeAmount = 0.0f;
 RandomNumberGenerator* g_randomNumGen;
 bool g_debugMode = false;
 
-//Externs
+//Extern 
 extern RenderContext* g_renderContext;
 extern AudioSystem* g_audio;
 
@@ -85,23 +86,31 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		}
 		case TAB_KEY:
 		{
-			//Select object for possession
-			float distMinSq = 200.f;
-			m_selectedIndex = 0;
 			int numGeometry = static_cast<int>(m_allGeometry.size()) ;
-			for(int geometryIndex = 0; geometryIndex < numGeometry; geometryIndex++)
-			{
-				if(m_allGeometry[geometryIndex] == nullptr)
-				{
-					continue;
-				}
 
-				float distSq = GetDistanceSquared2D(m_gameCursor->GetCursorPositon(), m_allGeometry[geometryIndex]->m_transform.m_position);
-				if(distMinSq > distSq)
+			if(m_selectedGeometry == nullptr)
+			{
+				//Select object for possession
+				float distMinSq = 200.f;
+				m_selectedIndex = 0;
+				for(int geometryIndex = 0; geometryIndex < numGeometry; geometryIndex++)
 				{
-					distMinSq = distSq;
-					m_selectedIndex = geometryIndex;
+					if(m_allGeometry[geometryIndex] == nullptr)
+					{
+						continue;
+					}
+
+					float distSq = GetDistanceSquared2D(m_gameCursor->GetCursorPositon(), m_allGeometry[geometryIndex]->m_transform.m_position);
+					if(distMinSq > distSq)
+					{
+						distMinSq = distSq;
+						m_selectedIndex = geometryIndex;
+					}
 				}
+			}
+			else
+			{
+				m_selectedIndex = GetNextValidGeometryIndex(m_selectedIndex);
 			}
 
 			//Now select the actual object
@@ -152,6 +161,28 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		default:
 		break;
 	}
+}
+
+int Game::GetNextValidGeometryIndex(int index)
+{
+	int vectorSize = static_cast<int>(m_allGeometry.size());
+
+	int end = index;
+	index = (index + 1) % vectorSize;
+
+	while(index != end)
+	{
+		if(m_allGeometry[index] != nullptr)
+		{
+			return index;
+		}
+		else
+		{
+			index = (index + 1) % vectorSize;
+		}
+	}
+
+	return end;
 }
 
 //Function that handles debug mode enabled

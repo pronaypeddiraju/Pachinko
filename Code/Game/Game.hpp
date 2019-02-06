@@ -28,6 +28,7 @@ public:
 	
 	void					StartUp();
 	void					HandleKeyPressed( unsigned char keyCode );
+	int						GetNextValidGeometryIndex(int index);
 	void					DebugEnabled();
 
 	void					HandleKeyReleased( unsigned char keyCode );
