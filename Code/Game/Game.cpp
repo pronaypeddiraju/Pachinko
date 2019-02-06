@@ -71,15 +71,16 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		{
 			//Deselect object
 			m_selectedGeometry = nullptr;
+			m_selectedIndex = -1;
 			break;
 		}
 		case DEL_KEY:
 		{
 			//Destroy selected object
-			delete m_allGeometry[m_selectedIndex];
-			m_allGeometry[m_selectedIndex] = nullptr;
 			delete m_selectedGeometry;
 			m_selectedGeometry = nullptr;
+			//Set the reference to the object in vector to be nullptr
+			m_allGeometry[m_selectedIndex] = nullptr;
 			break;
 		}
 		case TAB_KEY:
@@ -205,11 +206,10 @@ void Game::RenderAllGeometry() const
 	g_physicsSystem->DebugRender( g_renderContext ); 
 
 	// overwrite the selected object with a white draw; 
-	/*
-	if (m_selected_object != nullptr) {
-		m_selected_object->m_rigidbody->debug_render( ctx, rgba::WHITE ); 
+	if (m_selectedGeometry != nullptr) 
+	{
+		m_selectedGeometry->m_rigidbody->DebugRender( g_renderContext, Rgba::WHITE ); 
 	}
-	*/
 
 }
 
@@ -241,9 +241,7 @@ void Game::Update( float deltaTime )
 void Game::UpdateGeometry( float deltaTime )
 {
 	// let physics system play out
-	g_physicsSystem->Update(deltaTime); 
-
-	ClearGarbageEntities();
+	g_physicsSystem->Update(deltaTime);
 }
 
 void Game::UpdateCamera(float deltaTime)
@@ -290,7 +288,7 @@ void Game::ClearGarbageEntities()
 
 		//Kill object if below screen
 		if(m_allGeometry[geometryIndex]->m_transform.m_position.y < 0.f)
-		{
+		{	
 			delete m_allGeometry[geometryIndex];
 			m_allGeometry[geometryIndex] = nullptr;
 		}
