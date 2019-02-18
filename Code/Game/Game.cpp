@@ -262,8 +262,6 @@ void Game::Update( float deltaTime )
 	if(m_selectedGeometry != nullptr)
 	{
 		m_selectedGeometry->m_transform.m_position = m_gameCursor->GetCursorPositon();
-		//m_selectedGeometry->m_rigidbody->m_transform.m_position = m_gameCursor->GetCursorPositon();
-		//m_selectedGeometry->m_rigidbody->m_object_transform->m_position = m_gameCursor->GetCursorPositon();
 	}
 
 	ClearGarbageEntities();	
