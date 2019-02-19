@@ -301,18 +301,24 @@ void Game::RenderOnScreenInfo() const
 	printStringDynamic += std::to_string(dynamicCount);
 
 	std::vector<Vertex_PCU> textVerts;
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 2), m_fontHeight, printStringStatic, Rgba::YELLOW);
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 3), m_fontHeight, printStringDynamic, Rgba::YELLOW);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 2), m_fontHeight, printStringStatic, Rgba::WHITE);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 3), m_fontHeight, printStringDynamic, Rgba::WHITE);
+
+	std::string printStringMassClamp = "Mass Clamped between 0.1 and 10.0";
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 4), m_fontHeight, printStringMassClamp, Rgba::WHITE);
 
 	std::string printStringMass = "Object Mass (Adjust with N , M) : ";
 	printStringMass += std::to_string(m_objectMass);
 
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 4), m_fontHeight, printStringMass, Rgba::WHITE);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 5), m_fontHeight, printStringMass, Rgba::YELLOW);
+
+	std::string printStringRestitutionClamp = "Mass Clamped between 0.1 and 10.0";
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 6), m_fontHeight, printStringRestitutionClamp, Rgba::WHITE);
 
 	std::string printStringRestitution = "Object Restitution (Adjust with < , > ) : ";
 	printStringRestitution += std::to_string(m_objectRestitution);
 
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 5), m_fontHeight, printStringRestitution, Rgba::WHITE);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 7), m_fontHeight, printStringRestitution, Rgba::YELLOW);
 
 
 	g_renderContext->BindTexture(m_squirrelFont->GetTexture());
