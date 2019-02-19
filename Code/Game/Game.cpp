@@ -257,9 +257,9 @@ void Game::Render() const
 		
 	g_renderContext->ClearScreen(*g_clearScreenColor);
 
-	RenderOnScreenInfo();
-
 	RenderAllGeometry();
+
+	RenderOnScreenInfo();
 
 	m_gameCursor->Render();
 
