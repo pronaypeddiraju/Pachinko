@@ -72,7 +72,6 @@ LRESULT CALLBACK WindowsMessageHandlingProcedure( HWND windowHandle, UINT wmMess
 			case DEL_KEY:
 			case TAB_KEY:
 			case A_KEY:
-			case N_KEY:
 			case F1_KEY:
 				//F1 key (Debug Mode)
 			case F2_KEY:
@@ -82,6 +81,10 @@ LRESULT CALLBACK WindowsMessageHandlingProcedure( HWND windowHandle, UINT wmMess
 			case F6_KEY:
 			case F7_KEY:
 			case F8_KEY:
+			case KEY_LESSER:
+			case KEY_GREATER:
+			case M_KEY:
+			case N_KEY:
 				//F8 Key
 				g_theApp->HandleKeyPressed(asKey);
 				return 0;

@@ -10,6 +10,8 @@
 #include "Engine/Math/Disc2D.hpp"
 #include "Engine/Math/PhysicsSystem.hpp"
 #include "Engine/Math/MathUtils.hpp"
+#include "Engine/Math/RigidBodyBucket.hpp"
+#include "Engine/Renderer/BitmapFont.hpp"
 
 //Game systems
 #include "Game/GameCursor.hpp"
@@ -21,6 +23,8 @@ Camera *g_mainCamera = nullptr;
 float g_shakeAmount = 0.0f;
 RandomNumberGenerator* g_randomNumGen;
 bool g_debugMode = false;
+
+eSimulationType g_selectedSimType = STATIC_SIMULATION;
 
 //Extern 
 extern RenderContext* g_renderContext;
@@ -71,6 +75,11 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		case SPACE_KEY:
 		{
 			//Deselect object
+			m_selectedGeometry->m_rigidbody->SetSimulationMode(g_selectedSimType);
+			m_selectedGeometry->m_rigidbody->m_velocity = Vec2::ZERO;
+			m_selectedGeometry->m_rigidbody->m_mass = m_objectMass;
+			m_selectedGeometry->m_rigidbody->m_material.restitution = m_objectRestitution;
+
 			m_selectedGeometry = nullptr;
 			m_selectedIndex = -1;
 			break;
@@ -110,22 +119,45 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 			}
 			else
 			{
+				m_allGeometry[m_selectedIndex]->m_rigidbody->SetSimulationMode(g_selectedSimType);
+				m_allGeometry[m_selectedIndex]->m_rigidbody->m_velocity = Vec2::ZERO;
+				m_allGeometry[m_selectedIndex]->m_rigidbody->m_mass = m_objectMass;
+				m_allGeometry[m_selectedIndex]->m_rigidbody->m_material.restitution = m_objectRestitution;
+
 				m_selectedIndex = GetNextValidGeometryIndex(m_selectedIndex);
 			}
 
 			//Now select the actual object
 			m_selectedGeometry = m_allGeometry[m_selectedIndex];
+			g_selectedSimType = m_selectedGeometry->m_rigidbody->GetSimulationType();
+
 			m_selectedGeometry->m_rigidbody->SetSimulationMode(STATIC_SIMULATION);
 			m_gameCursor->SetCursorPosition(m_selectedGeometry->m_transform.m_position);
 			break;
 		}
 		case A_KEY:
 		case N_KEY:
+		m_objectMass -= m_massStep;
+		m_objectMass = Clamp(m_objectMass, 0.1f, 10.f);
+		break;
+		case M_KEY:
+		m_objectMass += m_massStep;
+		m_objectMass = Clamp(m_objectMass, 0.1f, 10.f);
+		break;
+		case KEY_LESSER:
+		m_objectRestitution -= m_restitutionStep;
+		m_objectRestitution = Clamp(m_objectRestitution, 0.f, 1.f);
+		break;
+		case KEY_GREATER:
+		m_objectRestitution += m_restitutionStep;
+		m_objectRestitution  = Clamp(m_objectRestitution, 0.f, 1.f);
 		break;
 		case F1_KEY:
 		{
 			//F1 spawns a static box on the cursor position
 			Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, AABB2_GEOMETRY, m_gameCursor->GetCursorPositon());
+			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
+
 			m_allGeometry.push_back(geometry);
 		}
 		break;
@@ -133,6 +165,8 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		{
 			//F2 spawns a static disc on the cursor position
 			Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, DISC_GEOMETRY, m_gameCursor->GetCursorPositon());
+			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
+
 			m_allGeometry.push_back(geometry);
 		}
 		break;
@@ -140,6 +174,9 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		{
 			//F3 spawns a dynamic box on the cursor position
 			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, AABB2_GEOMETRY, m_gameCursor->GetCursorPositon());
+			geometry->m_rigidbody->m_mass = m_objectMass;
+			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
+
 			m_allGeometry.push_back(geometry);
 		}
 		break;
@@ -147,6 +184,9 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		{
 			//F4 spawns a dynamic disc on the cursor position
 			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, DISC_GEOMETRY, m_gameCursor->GetCursorPositon());
+			geometry->m_rigidbody->m_mass = m_objectMass;
+			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
+
 			m_allGeometry.push_back(geometry);
 		}
 		break;
@@ -155,8 +195,6 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		case F6_KEY:
 		break;
 		case F7_KEY:
-		//Quit Debug
-		g_eventSystem->FireEvent("Quit");
 		break;
 		default:
 		break;
@@ -219,6 +257,8 @@ void Game::Render() const
 		
 	g_renderContext->ClearScreen(*g_clearScreenColor);
 
+	RenderOnScreenInfo();
+
 	RenderAllGeometry();
 
 	m_gameCursor->Render();
@@ -229,6 +269,55 @@ void Game::Render() const
 
 	g_renderContext->EndFrame();
 
+}
+
+void Game::RenderOnScreenInfo() const
+{
+	int staticVectorSize = static_cast<int>(g_physicsSystem->m_rbBucket->m_RbBucket[STATIC_SIMULATION].size());
+	int dynamicVectorSize = static_cast<int>(g_physicsSystem->m_rbBucket->m_RbBucket[DYNAMIC_SIMULATION].size());
+	int staticCount = 0;
+	int dynamicCount = 0;
+
+	for(int staticIndex = 0; staticIndex < staticVectorSize; staticIndex++)
+	{
+		if(g_physicsSystem->m_rbBucket->m_RbBucket[STATIC_SIMULATION][staticIndex] != nullptr)
+		{
+			staticCount++;
+		}
+	}
+
+	for(int dynamicIndex = 0; dynamicIndex < dynamicVectorSize; dynamicIndex++)
+	{
+		if(g_physicsSystem->m_rbBucket->m_RbBucket[DYNAMIC_SIMULATION][dynamicIndex] != nullptr)
+		{
+			dynamicCount++;
+		}
+	}
+
+	std::string printStringStatic = "Number of Static Objects : ";
+	printStringStatic += std::to_string(staticCount);
+
+	std::string printStringDynamic = "Number of Dynamic Objects : ";
+	printStringDynamic += std::to_string(dynamicCount);
+
+	std::vector<Vertex_PCU> textVerts;
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 2), m_fontHeight, printStringStatic, Rgba::YELLOW);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 3), m_fontHeight, printStringDynamic, Rgba::YELLOW);
+
+	std::string printStringMass = "Object Mass (Adjust with N , M) : ";
+	printStringMass += std::to_string(m_objectMass);
+
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 4), m_fontHeight, printStringMass, Rgba::WHITE);
+
+	std::string printStringRestitution = "Object Restitution (Adjust with < , > ) : ";
+	printStringRestitution += std::to_string(m_objectRestitution);
+
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 5), m_fontHeight, printStringRestitution, Rgba::WHITE);
+
+
+	g_renderContext->BindTexture(m_squirrelFont->GetTexture());
+	g_renderContext->DrawVertexArray(textVerts);
+	g_renderContext->BindTexture(nullptr);
 }
 
 void Game::RenderAllGeometry() const

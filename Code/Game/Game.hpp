@@ -33,6 +33,7 @@ public:
 
 	void					HandleKeyReleased( unsigned char keyCode );
 	void					Render() const;
+	void					RenderOnScreenInfo() const;
 	void					RenderAllGeometry() const;
 	void					PostRender();
 
@@ -57,4 +58,11 @@ public:
 	std::vector<Geometry*>  m_allGeometry;
 	Geometry*				m_selectedGeometry = nullptr;
 	int						m_selectedIndex;
+	float					m_fontHeight = 2.0f;
+
+	float					m_objectMass = 1.0f;
+	float					m_objectRestitution = 0.5f;
+
+	float					m_massStep = 0.1f;
+	float					m_restitutionStep = 0.1f;
 };
