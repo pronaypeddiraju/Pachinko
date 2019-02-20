@@ -312,7 +312,7 @@ void Game::RenderOnScreenInfo() const
 
 	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 5), m_fontHeight, printStringMass, Rgba::YELLOW);
 
-	std::string printStringRestitutionClamp = "Mass Clamped between 0.1 and 10.0";
+	std::string printStringRestitutionClamp = "Restitution Clamped between 0 and 1";
 	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 6), m_fontHeight, printStringRestitutionClamp, Rgba::WHITE);
 
 	std::string printStringRestitution = "Object Restitution (Adjust with < , > ) : ";
