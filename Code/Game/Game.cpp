@@ -44,6 +44,8 @@ Game::Game()
 Game::~Game()
 {
 	m_isGameAlive = false;
+	delete g_mainCamera;
+	g_mainCamera = nullptr;
 }
 
 void Game::StartUp()
@@ -53,6 +55,11 @@ void Game::StartUp()
 
 	Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, AABB2_GEOMETRY, Vec2(100.f, 10.f), true);
 	m_allGeometry.push_back(geometry);
+
+	g_mainCamera = new Camera();
+	Vec2 orthoBottomLeft = Vec2(0.f,0.f);
+	Vec2 orthoTopRight = Vec2(WORLD_WIDTH, WORLD_HEIGHT);
+	g_mainCamera->SetOrthoView(orthoBottomLeft, orthoTopRight);
 }
 
 STATIC bool Game::TestEvent(EventArgs& args)
@@ -74,7 +81,7 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		break;
 		case SPACE_KEY:
 		{
-			//Deselect object
+			//De-select object
 			m_selectedGeometry->m_rigidbody->SetSimulationMode(g_selectedSimType);
 			m_selectedGeometry->m_rigidbody->m_velocity = Vec2::ZERO;
 			m_selectedGeometry->m_rigidbody->m_mass = m_objectMass;
@@ -348,7 +355,7 @@ void Game::PostRender()
 //Calls the UpdateShip function in playerShip
 void Game::Update( float deltaTime )
 {
-	UpdateCamera(deltaTime);
+	//UpdateCamera(deltaTime);
 
 	m_gameCursor->Update(deltaTime);
 
