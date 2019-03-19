@@ -57,7 +57,8 @@ void GameCursor::Render() const
 	AddVertsForLine2D(lineVerts, m_cursorPosition - vertLineOffset - Vec2(0.f, 0.5f), m_cursorPosition + vertLineOffset + Vec2(0.f, 0.5f), m_cursorThickness, m_cursorColor);
 	AddVertsForLine2D(lineVerts, m_cursorPosition - horLineOffset - Vec2(0.5f, 0.f), m_cursorPosition + horLineOffset + Vec2(0.5f, 0.f), m_cursorThickness, m_cursorColor);
 
-	g_renderContext->BindTexture(nullptr);
+	//g_renderContext->BindTexture(nullptr);
+	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
 	g_renderContext->DrawVertexArray(lineVerts);
 	g_renderContext->DrawVertexArray(ringVerts);
 }

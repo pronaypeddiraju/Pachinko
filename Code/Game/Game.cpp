@@ -12,6 +12,7 @@
 #include "Engine/Math/MathUtils.hpp"
 #include "Engine/Math/RigidBodyBucket.hpp"
 #include "Engine/Renderer/BitmapFont.hpp"
+#include "Engine/Renderer/Shader.hpp"
 
 //Game systems
 #include "Game/GameCursor.hpp"
@@ -19,7 +20,6 @@
 
 //Globals
 Rgba* g_clearScreenColor = nullptr;
-Camera *g_mainCamera = nullptr; 
 float g_shakeAmount = 0.0f;
 RandomNumberGenerator* g_randomNumGen;
 bool g_debugMode = false;
@@ -44,8 +44,8 @@ Game::Game()
 Game::~Game()
 {
 	m_isGameAlive = false;
-	delete g_mainCamera;
-	g_mainCamera = nullptr;
+	delete m_mainCamera;
+	m_mainCamera = nullptr;
 }
 
 void Game::StartUp()
@@ -56,10 +56,30 @@ void Game::StartUp()
 	Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, AABB2_GEOMETRY, Vec2(100.f, 10.f), true);
 	m_allGeometry.push_back(geometry);
 
-	g_mainCamera = new Camera();
+	//Create the Camera and setOrthoView
+	m_mainCamera = new Camera();
+	m_mainCamera->SetColorTarget(nullptr);
+
+	//Create a devConsole Cam
+	m_devConsoleCamera = new Camera();
+	m_devConsoleCamera->SetColorTarget(nullptr);
+
 	Vec2 orthoBottomLeft = Vec2(0.f,0.f);
 	Vec2 orthoTopRight = Vec2(WORLD_WIDTH, WORLD_HEIGHT);
-	g_mainCamera->SetOrthoView(orthoBottomLeft, orthoTopRight);
+	m_mainCamera->SetOrthoView(orthoBottomLeft, orthoTopRight);
+
+	//Get the Shader
+	m_shader = g_renderContext->CreateOrGetShaderFromFile(m_xmlShaderPath);
+	m_shader->SetDepth(eCompareOp::COMPARE_LEQUAL, true);
+}
+
+void Game::ShutDown()
+{
+	delete m_mainCamera;
+	m_mainCamera = nullptr;
+
+	delete m_devConsoleCamera;
+	m_devConsoleCamera = nullptr;
 }
 
 STATIC bool Game::TestEvent(EventArgs& args)
@@ -256,13 +276,20 @@ void Game::HandleKeyReleased(unsigned char keyCode)
 
 void Game::Render() const
 {
-	g_renderContext->BeginFrame();
+	//Get the ColorTargetView from rendercontext
+	ColorTargetView *colorTargetView = g_renderContext->GetFrameColorTarget();
 
-	g_renderContext->BeginCamera(*g_mainCamera);
+	//Setup what we are rendering to
+	m_mainCamera->SetColorTarget(colorTargetView);
+	m_devConsoleCamera->SetColorTarget(colorTargetView);
 
-	g_renderContext->BindTexture(nullptr);
+	g_renderContext->BeginCamera(*m_mainCamera);
+
+	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
 		
-	g_renderContext->ClearScreen(*g_clearScreenColor);
+	g_renderContext->ClearColorTargets(*g_clearScreenColor);
+
+	g_renderContext->BindShader( m_shader );
 
 	RenderAllGeometry();
 
@@ -270,11 +297,9 @@ void Game::Render() const
 
 	m_gameCursor->Render();
 
-	g_renderContext->BindTexture(nullptr);
+	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
 
-	g_renderContext->EndCamera(*g_mainCamera);
-
-	g_renderContext->EndFrame();
+	g_renderContext->EndCamera();
 
 }
 
@@ -328,9 +353,9 @@ void Game::RenderOnScreenInfo() const
 	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 7), m_fontHeight, printStringRestitution, Rgba::YELLOW);
 
 
-	g_renderContext->BindTexture(m_squirrelFont->GetTexture());
+	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
 	g_renderContext->DrawVertexArray(textVerts);
-	g_renderContext->BindTexture(nullptr);
+	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
 }
 
 void Game::RenderAllGeometry() const
@@ -377,10 +402,10 @@ void Game::UpdateGeometry( float deltaTime )
 
 void Game::UpdateCamera(float deltaTime)
 {
-	g_mainCamera = new Camera();
+	m_mainCamera = new Camera();
 	Vec2 orthoBottomLeft = Vec2(0.f,0.f);
 	Vec2 orthoTopRight = Vec2(WORLD_WIDTH, WORLD_HEIGHT);
-	g_mainCamera->SetOrthoView(orthoBottomLeft, orthoTopRight);
+	m_mainCamera->SetOrthoView(orthoBottomLeft, orthoTopRight);
 
 	float shakeX = 0.f;
 	float shakeY = 0.f;
@@ -399,7 +424,7 @@ void Game::UpdateCamera(float deltaTime)
 
 	Vec2 translate2D = Vec2(shakeX, shakeY);
 	translate2D.ClampLength(MAX_SHAKE);
-	g_mainCamera->Translate2D(translate2D);
+	m_mainCamera->Translate2D(translate2D);
 }
 
 
@@ -407,7 +432,7 @@ void Game::UpdateCamera(float deltaTime)
 void Game::ClearGarbageEntities()
 {
 	//Kill any entity off screen
-	AABB2 bounds = AABB2(g_mainCamera->GetOrthoBottomLeft(), g_mainCamera->GetOrthoTopRight()); 
+	AABB2 bounds = AABB2(m_mainCamera->GetOrthoBottomLeft(), m_mainCamera->GetOrthoTopRight()); 
 
 	int numGeometry = static_cast<int>(m_allGeometry.size());
 	for (int geometryIndex = 0; geometryIndex < numGeometry; geometryIndex++)

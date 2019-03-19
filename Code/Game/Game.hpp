@@ -14,6 +14,8 @@ class SpriteAnimDefenition;
 class Image;
 class GameCursor;
 class Geometry;
+class Shader;
+struct Camera;
 
 //------------------------------------------------------------------------------------------------------------------------------
 class Game
@@ -27,6 +29,7 @@ public:
 	static bool				TestEvent(EventArgs& args);
 	
 	void					StartUp();
+	void					ShutDown();
 	void					HandleKeyPressed( unsigned char keyCode );
 	int						GetNextValidGeometryIndex(int index);
 	void					DebugEnabled();
@@ -65,4 +68,10 @@ public:
 
 	float					m_massStep = 0.1f;
 	float					m_restitutionStep = 0.1f;
+
+	Camera*					m_mainCamera = nullptr;
+	Camera*					m_devConsoleCamera = nullptr;
+
+	Shader*					m_shader = nullptr;
+	std::string				m_xmlShaderPath = "default_unlit.xml";
 };

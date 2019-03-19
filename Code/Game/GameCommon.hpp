@@ -27,6 +27,8 @@ constexpr float BOX_MAX_WIDTH = 10.0f;
 constexpr float DISC_MIN_RADIUS = 2.5f;
 constexpr float DISC_MAX_RADIUS = 10.0f;
 
+constexpr float CLIENT_ASPECT = 2.0f; // We are requesting a 1:1 aspect (square) window area
+
 extern RenderContext* g_renderContext;
 extern InputSystem* g_inputSystem;
 extern AudioSystem* g_audio;

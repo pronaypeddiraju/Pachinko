@@ -24,6 +24,7 @@ App::App()
 
 App::~App()
 {
+	ShutDown();
 }
 
 STATIC bool App::Command_Quit(EventArgs& args)
@@ -67,8 +68,8 @@ void App::StartUp()
 	g_eventSystem = new EventSystems();
 
 	//Create the Render Context
-	g_renderContext = new RenderContext();
-	g_renderContext->Startup();
+	//g_renderContext = new RenderContext();
+	//g_renderContext->Startup();
 	
 	//Create the Input System
 	g_inputSystem = new InputSystem();
@@ -96,8 +97,8 @@ void App::StartUp()
 
 void App::ShutDown()
 {
-	delete g_theApp;			
-	g_theApp = nullptr;
+	m_game->ShutDown();
+	delete m_game;
 
 	delete g_renderContext;
 	g_renderContext = nullptr;
@@ -249,6 +250,13 @@ bool App::HandleKeyReleased(unsigned char keyCode)
 	}
 
 
+}
+
+bool App::HandleCharacter( unsigned char charCode )
+{
+	UNUSED(charCode);
+	//m_game->HandleCharacter(charCode);
+	return false;
 }
 
 bool App::HandleQuitRequested()
