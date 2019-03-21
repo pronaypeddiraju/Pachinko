@@ -68,9 +68,10 @@ Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType,
 		{
 			size = Vec2(g_randomNumGen->GetRandomFloatInRange(BOX_MIN_WIDTH, BOX_MAX_WIDTH), g_randomNumGen->GetRandomFloatInRange(BOX_MIN_WIDTH, BOX_MAX_WIDTH));
 			
-			//rotationDegrees = g_randomNumGen->GetRandomFloatInRange(0.f, 360.f);
+			rotationDegrees = g_randomNumGen->GetRandomFloatInRange(0.f, 360.f);
+			
 			//For easy debugging let's make it 45 degrees
-			rotationDegrees = 0.f;
+			//rotationDegrees = 0.f;
 		}
 		else
 		{
