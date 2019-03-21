@@ -87,7 +87,7 @@ Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType,
 	{
 		float radius = g_randomNumGen->GetRandomFloatInRange(DISC_MIN_RADIUS, DISC_MAX_RADIUS);
 
-		m_collider = m_rigidbody->SetCollider( new CapsuleCollider2D(cursorPosition, cursorPosition, radius) );  
+		m_collider = m_rigidbody->SetCollider( new CapsuleCollider2D(cursorPosition, cursorPosition + Vec2(0.f, -10.0f), radius) );  
 		m_collider->m_colliderType = COLLIDER_CAPSULE;
 		m_collider->m_rigidbody = m_rigidbody;
 	}
