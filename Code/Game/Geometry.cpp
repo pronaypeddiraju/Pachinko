@@ -30,13 +30,6 @@ Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType,
 
 		if(!staticFloor)
 		{
-			/*
-			thickness = g_randomNumGen->GetRandomFloatInRange(BOX_MIN_WIDTH, BOX_MAX_WIDTH);
-
-			minBounds = Vec2(cursorPosition.x - thickness, cursorPosition.y - thickness);
-			maxBounds = Vec2(cursorPosition.x + thickness, cursorPosition.y + thickness);
-			*/
-
 			thickness = g_randomNumGen->GetRandomFloatInRange(BOX_MIN_WIDTH, BOX_MAX_WIDTH);
 
 			minBounds = Vec2(-thickness, -thickness);
@@ -46,12 +39,7 @@ Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType,
 		{
 			thickness = 80.f;
 			float height = 10.f;
-			
-			/*
-			minBounds = Vec2(cursorPosition.x - thickness, cursorPosition.y - height);
-			maxBounds = Vec2(cursorPosition.x + thickness, cursorPosition.y + height);
-			*/
-
+		
 			minBounds = Vec2(-thickness, -height);
 			maxBounds = Vec2(thickness, height);
 		}
@@ -69,6 +57,34 @@ Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType,
 		m_collider = m_rigidbody->SetCollider(new Disc2DCollider(Vec2::ZERO, radius));
 		m_collider->m_colliderType = COLLIDER_DISC;
 		m_collider->m_rigidbody = m_rigidbody;
+	}
+	break;
+	case BOX_GEOMETRY:
+	{
+		Vec2 size;
+		float rotationDegrees = 0.f;
+
+		if(!staticFloor)
+		{
+			size = Vec2(g_randomNumGen->GetRandomFloatInRange(BOX_MIN_WIDTH, BOX_MAX_WIDTH), g_randomNumGen->GetRandomFloatInRange(BOX_MIN_WIDTH, BOX_MAX_WIDTH));
+			
+			//rotationDegrees = g_randomNumGen->GetRandomFloatInRange(0.f, 360.f);
+			//For easy debugging let's make it 45 degrees
+			rotationDegrees = 0.f;
+		}
+		else
+		{
+			size = Vec2(80.f, 10.f);
+		}
+
+		m_collider = m_rigidbody->SetCollider( new BoxCollider2D(Vec2::ZERO, size, rotationDegrees) );  
+		m_collider->m_colliderType = COLLIDER_BOX;
+		m_collider->m_rigidbody = m_rigidbody;
+	}
+	break;
+	case CAPSULE_GEOMETRY:
+	{
+
 	}
 	break;
 	case NUM_GEOMETRY_TYPES:

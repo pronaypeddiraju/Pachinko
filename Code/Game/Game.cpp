@@ -53,7 +53,7 @@ void Game::StartUp()
 	g_clearScreenColor = new Rgba(0.f, 0.f, 0.f, 1.f);
 	m_gameCursor = new GameCursor();
 
-	Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, AABB2_GEOMETRY, Vec2(100.f, 10.f), true);
+	Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, Vec2(100.f, 10.f), true);
 	m_allGeometry.push_back(geometry);
 
 	//Create the Camera and setOrthoView
@@ -182,7 +182,7 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		case F1_KEY:
 		{
 			//F1 spawns a static box on the cursor position
-			Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, AABB2_GEOMETRY, m_gameCursor->GetCursorPositon());
+			Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, m_gameCursor->GetCursorPositon());
 			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 
 			m_allGeometry.push_back(geometry);
@@ -200,7 +200,7 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		case F3_KEY:
 		{
 			//F3 spawns a dynamic box on the cursor position
-			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, AABB2_GEOMETRY, m_gameCursor->GetCursorPositon());
+			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, BOX_GEOMETRY, m_gameCursor->GetCursorPositon());
 			geometry->m_rigidbody->m_mass = m_objectMass;
 			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 
