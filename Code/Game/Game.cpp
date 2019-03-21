@@ -191,7 +191,7 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		case F2_KEY:
 		{
 			//F2 spawns a static disc on the cursor position
-			Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, DISC_GEOMETRY, m_gameCursor->GetCursorPositon());
+			Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, CAPSULE_GEOMETRY, m_gameCursor->GetCursorPositon());
 			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 
 			m_allGeometry.push_back(geometry);
@@ -210,7 +210,7 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		case F4_KEY:
 		{
 			//F4 spawns a dynamic disc on the cursor position
-			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, DISC_GEOMETRY, m_gameCursor->GetCursorPositon());
+			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, CAPSULE_GEOMETRY, m_gameCursor->GetCursorPositon());
 			geometry->m_rigidbody->m_mass = m_objectMass;
 			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 
