@@ -84,8 +84,7 @@ static bool AppWindowProc( void* windowHandle, uint32_t wmMessageCode, uintptr_t
 				return 0;
 			}
 		}
-				
-	}
+	} break; 
 
 	case WM_LBUTTONDOWN:
 	{

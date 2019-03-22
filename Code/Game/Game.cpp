@@ -247,6 +247,11 @@ bool Game::HandleMouseLBDown()
 {
 	int numGeometry = static_cast<int>(m_allGeometry.size()) ;
 
+	if(numGeometry == 0)
+	{
+		return true;
+	}
+
 	//Select object for possession
 	float distMinSq = 200.f;
 	m_selectedIndex = 0;
@@ -548,6 +553,7 @@ void Game::RenderAllGeometry() const
 	// display debug information
 	g_physicsSystem->DebugRender( g_renderContext ); 
 
+	/*
 	// overwrite the selected object with a white draw; 
 	if (m_selectedGeometry != nullptr) 
 	{
@@ -557,7 +563,7 @@ void Game::RenderAllGeometry() const
 		}
 		m_selectedGeometry->m_rigidbody->DebugRender( g_renderContext, Rgba::WHITE ); 
 	}
-
+	*/
 }
 
 void Game::PostRender()
@@ -642,7 +648,15 @@ void Game::UpdateCameraMovement( unsigned char keyCode )
 	break;
 	case A_KEY:
 	{
+		//For when we are over world bounds
 		if(m_mainCamera->GetOrthoTopRight().x > m_worldBounds.m_maxBounds.x)
+		{
+			//Move the camera left
+			m_mainCamera->Translate2D(Vec2(-1.f, 0.0f));
+		}
+
+		//For when we are inside the world bounds
+		if(m_mainCamera->GetOrthoBottomLeft().x > m_worldBounds.m_minBounds.x)
 		{
 			//Move the camera left
 			m_mainCamera->Translate2D(Vec2(-1.f, 0.0f));
@@ -651,9 +665,17 @@ void Game::UpdateCameraMovement( unsigned char keyCode )
 	break;
 	case D_KEY:
 	{
+		//When we are bigger than the world bounds
 		if(m_mainCamera->GetOrthoBottomLeft().x < m_worldBounds.m_minBounds.x)
 		{
-			//Move the camera left
+			//Move the camera right
+			m_mainCamera->Translate2D(Vec2(1.f, 0.0f));
+		}
+
+		//For when we are inside the world bounds
+		if(m_mainCamera->GetOrthoTopRight().x < m_worldBounds.m_maxBounds.x)
+		{
+			//Move the camera right
 			m_mainCamera->Translate2D(Vec2(1.f, 0.0f));
 		}
 	}
@@ -667,19 +689,13 @@ void Game::UpdateCameraMovement( unsigned char keyCode )
 void Game::ClearGarbageEntities()
 {
 	//Kill any entity off screen
-	AABB2 bounds = AABB2(m_mainCamera->GetOrthoBottomLeft(), m_mainCamera->GetOrthoTopRight()); 
 
-	int numGeometry = static_cast<int>(m_allGeometry.size());
-	for (int geometryIndex = 0; geometryIndex < numGeometry; geometryIndex++)
+	for (int geometryIndex = 0; geometryIndex < m_allGeometry.size(); geometryIndex++)
 	{
 		if(m_allGeometry[geometryIndex] == nullptr)
 		{
 			continue;
 		}
-
-		/*
-		Vec2 clampedPos = clampedPos.ClampVector(m_allGeometry[geometryIndex]->m_transform.m_position, m_worldBounds.m_minBounds, m_worldBounds.m_maxBounds);
-		*/
 
 		bool isOffRight = (m_allGeometry[geometryIndex]->m_transform.m_position.x > m_worldBounds.m_maxBounds.x);
 		bool isOffLeft = (m_allGeometry[geometryIndex]->m_transform.m_position.x < m_worldBounds.m_minBounds.x);
@@ -688,18 +704,16 @@ void Game::ClearGarbageEntities()
 
 		if(isOffRight || isOffLeft || isOffTop || isOffBottom)
 		{
+			if(m_allGeometry[geometryIndex] == m_selectedGeometry)
+			{
+				m_selectedGeometry = nullptr;
+			}
+
 			delete m_allGeometry[geometryIndex];
 			m_allGeometry[geometryIndex] = nullptr;
+			m_allGeometry.erase(m_allGeometry.begin() + geometryIndex);
 		}
 
-		/*
-		//Kill object if below screen
-		if(m_allGeometry[geometryIndex]->m_transform.m_position.y < 0.f)
-		{	
-			delete m_allGeometry[geometryIndex];
-			m_allGeometry[geometryIndex] = nullptr;
-		}
-		*/
 	}
 }
 
