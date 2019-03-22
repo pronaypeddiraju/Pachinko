@@ -25,7 +25,7 @@ constexpr float BOX_MIN_WIDTH = 2.5f;
 constexpr float BOX_MAX_WIDTH = 10.0f;
 
 constexpr float DISC_MIN_RADIUS = 2.5f;
-constexpr float DISC_MAX_RADIUS = 10.0f;
+constexpr float DISC_MAX_RADIUS = 5.0f;
 
 constexpr float MAX_ZOOM_STEPS = 30.f;
 
