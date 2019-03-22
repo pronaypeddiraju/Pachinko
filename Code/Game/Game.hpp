@@ -1,6 +1,7 @@
 //------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 //Engine systems
+#include "Engine/Math/AABB2.hpp"
 #include "Engine/Math/Vertex_PCU.hpp"
 #include "Engine/Audio/AudioSystem.hpp"
 
@@ -45,6 +46,7 @@ public:
 	bool					HandleMouseScroll(float wheelDelta);
 
 	void					Render() const;
+	void					RenderWorldBounds() const;
 	void					RenderOnScreenInfo() const;
 	void					RenderAllGeometry() const;
 	void					PostRender();
@@ -52,7 +54,8 @@ public:
 	void					Update( float deltaTime );
 	void					UpdateGeometry( float deltaTime );
 	void					UpdateCamera( float deltaTime );
-	
+	void					UpdateCameraMovement(unsigned char keyCode);
+
 	void					ClearGarbageEntities();
 	void					CheckCollisions();
 
@@ -97,4 +100,6 @@ public:
 
 	float					m_zoomLevel = 0.0f;
 	float					m_zoomMultiplier = 10.f;
+
+	AABB2					m_worldBounds;
 };

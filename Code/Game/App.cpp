@@ -187,7 +187,10 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 		case RIGHT_ARROW:
 		case LEFT_ARROW:
 		case DOWN_ARROW:	
+		case W_KEY:
 		case A_KEY:
+		case S_KEY:
+		case D_KEY:
 		case F1_KEY:
 		case F2_KEY:
 		case F3_KEY:
@@ -202,7 +205,6 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 		case KEY_GREATER:
 		case N_KEY:
 		case M_KEY:
-		case S_KEY:
 		case G_KEY:
 			m_game->HandleKeyPressed(keyCode);
 			return true;

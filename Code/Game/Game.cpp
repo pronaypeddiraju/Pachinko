@@ -60,6 +60,12 @@ void Game::StartUp()
 	g_clearScreenColor = new Rgba(0.f, 0.f, 0.f, 1.f);
 	m_gameCursor = new GameCursor();
 
+	//Create the world bounds AABB2
+	Vec2 minWorldBounds = Vec2(20.f, -20.f);
+	Vec2 maxWorldBounds = Vec2(WORLD_WIDTH, WORLD_HEIGHT) + Vec2(-20.f, 20.f);
+	m_worldBounds = AABB2(minWorldBounds, maxWorldBounds);
+
+	//Create the static floor object
 	Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, Vec2(100.f, 10.f), 0.f, 0.f, Vec2(100.f, 10.f), true);
 	m_allGeometry.push_back(geometry);
 
@@ -100,11 +106,12 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 {
 	switch( keyCode )
 	{
-		case UP_ARROW:
-		case RIGHT_ARROW:
-		case LEFT_ARROW:
-		case DOWN_ARROW:
-		m_gameCursor->HandleKeyPressed(keyCode);
+		case W_KEY:
+		case S_KEY:
+		case A_KEY:
+		case D_KEY:
+		//m_gameCursor->HandleKeyPressed(keyCode);
+		UpdateCameraMovement(keyCode);
 		break;		
 		case SPACE_KEY:
 		{
@@ -134,7 +141,6 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		{
 			break;
 		}
-		case A_KEY:
 		case N_KEY:
 		m_objectMass -= m_massStep;
 		m_objectMass = Clamp(m_objectMass, 0.1f, 10.f);
@@ -408,6 +414,8 @@ void Game::Render() const
 
 	RenderAllGeometry();
 
+	RenderWorldBounds();
+
 	RenderOnScreenInfo();
 
 	m_gameCursor->Render();
@@ -418,12 +426,23 @@ void Game::Render() const
 
 }
 
+void Game::RenderWorldBounds() const
+{
+	std::vector<Vertex_PCU> boxVerts;
+	AddVertsForBoundingBox(boxVerts, m_worldBounds, Rgba::DARK_GREY, 2.f);
+	
+	g_renderContext->DrawVertexArray(boxVerts);
+}
+
 void Game::RenderOnScreenInfo() const
 {
 	int staticVectorSize = static_cast<int>(g_physicsSystem->m_rbBucket->m_RbBucket[STATIC_SIMULATION].size());
 	int dynamicVectorSize = static_cast<int>(g_physicsSystem->m_rbBucket->m_RbBucket[DYNAMIC_SIMULATION].size());
 	int staticCount = 0;
 	int dynamicCount = 0;
+
+	Vec2 camMinBounds = m_mainCamera->GetOrthoBottomLeft();
+	Vec2 camMaxBounds = m_mainCamera->GetOrthoTopRight();
 
 	for(int staticIndex = 0; staticIndex < staticVectorSize; staticIndex++)
 	{
@@ -448,24 +467,24 @@ void Game::RenderOnScreenInfo() const
 	printStringDynamic += std::to_string(dynamicCount);
 
 	std::vector<Vertex_PCU> textVerts;
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 2), m_fontHeight, printStringStatic, Rgba::WHITE);
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 3), m_fontHeight, printStringDynamic, Rgba::WHITE);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 2), m_fontHeight, printStringStatic, Rgba::WHITE);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 3), m_fontHeight, printStringDynamic, Rgba::WHITE);
 
 	std::string printStringMassClamp = "Mass Clamped between 0.1 and 10.0";
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 4), m_fontHeight, printStringMassClamp, Rgba::WHITE);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 4), m_fontHeight, printStringMassClamp, Rgba::WHITE);
 
 	std::string printStringMass = "Object Mass (Adjust with N , M) : ";
 	printStringMass += std::to_string(m_objectMass);
 
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 5), m_fontHeight, printStringMass, Rgba::YELLOW);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 5), m_fontHeight, printStringMass, Rgba::YELLOW);
 
 	std::string printStringRestitutionClamp = "Restitution Clamped between 0 and 1";
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 6), m_fontHeight, printStringRestitutionClamp, Rgba::WHITE);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 6), m_fontHeight, printStringRestitutionClamp, Rgba::WHITE);
 
 	std::string printStringRestitution = "Object Restitution (Adjust with < , > ) : ";
 	printStringRestitution += std::to_string(m_objectRestitution);
 
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 7), m_fontHeight, printStringRestitution, Rgba::YELLOW);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 7), m_fontHeight, printStringRestitution, Rgba::YELLOW);
 
 	std::string printStringSimType = "Simulation (Space Key) : ";
 	if(m_isStatic)
@@ -476,7 +495,7 @@ void Game::RenderOnScreenInfo() const
 	{
 		printStringSimType += "Dynamic";
 	}
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 9), m_fontHeight, printStringSimType, Rgba::ORANGE);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 9), m_fontHeight, printStringSimType, Rgba::ORANGE);
 
 	std::string printStringObjType = "Geometry (G Key) : ";
 	switch( m_geometryType )
@@ -501,7 +520,7 @@ void Game::RenderOnScreenInfo() const
 	break;
 	}
 
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 10), m_fontHeight, printStringObjType, Rgba::YELLOW);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 10), m_fontHeight, printStringObjType, Rgba::YELLOW);
 
 	//Mouse Debug
 
@@ -510,14 +529,14 @@ void Game::RenderOnScreenInfo() const
 	printStringMousePos += ", ";
 	printStringMousePos += std::to_string(g_windowContext->GetClientMousePosition().y);
 
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, 10.f), m_fontHeight, printStringMousePos, Rgba::WHITE);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMinBounds.y + 10.f), m_fontHeight, printStringMousePos, Rgba::WHITE);
 
 	std::string printStringClientBounds = "Client Bounds: ";
 	printStringClientBounds += std::to_string(g_windowContext->GetClientBounds().x);
 	printStringClientBounds += ", ";
 	printStringClientBounds += std::to_string(g_windowContext->GetClientBounds().y);
 
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, 10.f - m_fontHeight), m_fontHeight, printStringClientBounds, Rgba::WHITE);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMinBounds.y + 10.f - m_fontHeight), m_fontHeight, printStringClientBounds, Rgba::WHITE);
 
 	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
 	g_renderContext->DrawVertexArray(textVerts);
@@ -532,6 +551,10 @@ void Game::RenderAllGeometry() const
 	// overwrite the selected object with a white draw; 
 	if (m_selectedGeometry != nullptr) 
 	{
+		if(m_selectedGeometry->m_rigidbody == nullptr)
+		{
+			return;
+		}
 		m_selectedGeometry->m_rigidbody->DebugRender( g_renderContext, Rgba::WHITE ); 
 	}
 
@@ -594,6 +617,52 @@ void Game::UpdateCamera(float deltaTime)
 }
 
 
+//Function to update movement of the camera within the game
+void Game::UpdateCameraMovement( unsigned char keyCode )
+{
+	switch( keyCode )
+	{
+	case W_KEY:
+	{
+		if(m_mainCamera->GetOrthoTopRight().y < m_worldBounds.m_maxBounds.y)
+		{
+			//Move the camera up
+			m_mainCamera->Translate2D(Vec2(0.f, 1.0f));
+		}
+	}
+	break;
+	case S_KEY:
+	{
+		if(m_mainCamera->GetOrthoBottomLeft().y > m_worldBounds.m_minBounds.y)
+		{
+			//Move the camera down
+			m_mainCamera->Translate2D(Vec2(0.f, -1.0f));
+		}
+	}
+	break;
+	case A_KEY:
+	{
+		if(m_mainCamera->GetOrthoTopRight().x > m_worldBounds.m_maxBounds.x)
+		{
+			//Move the camera left
+			m_mainCamera->Translate2D(Vec2(-1.f, 0.0f));
+		}
+	}
+	break;
+	case D_KEY:
+	{
+		if(m_mainCamera->GetOrthoBottomLeft().x < m_worldBounds.m_minBounds.x)
+		{
+			//Move the camera left
+			m_mainCamera->Translate2D(Vec2(1.f, 0.0f));
+		}
+	}
+	break;
+	default:
+	break;
+	}
+
+}
 
 void Game::ClearGarbageEntities()
 {
@@ -608,12 +677,29 @@ void Game::ClearGarbageEntities()
 			continue;
 		}
 
+		/*
+		Vec2 clampedPos = clampedPos.ClampVector(m_allGeometry[geometryIndex]->m_transform.m_position, m_worldBounds.m_minBounds, m_worldBounds.m_maxBounds);
+		*/
+
+		bool isOffRight = (m_allGeometry[geometryIndex]->m_transform.m_position.x > m_worldBounds.m_maxBounds.x);
+		bool isOffLeft = (m_allGeometry[geometryIndex]->m_transform.m_position.x < m_worldBounds.m_minBounds.x);
+		bool isOffBottom = (m_allGeometry[geometryIndex]->m_transform.m_position.y < m_worldBounds.m_minBounds.y);
+		bool isOffTop = (m_allGeometry[geometryIndex]->m_transform.m_position.y > m_worldBounds.m_maxBounds.y);
+
+		if(isOffRight || isOffLeft || isOffTop || isOffBottom)
+		{
+			delete m_allGeometry[geometryIndex];
+			m_allGeometry[geometryIndex] = nullptr;
+		}
+
+		/*
 		//Kill object if below screen
 		if(m_allGeometry[geometryIndex]->m_transform.m_position.y < 0.f)
 		{	
 			delete m_allGeometry[geometryIndex];
 			m_allGeometry[geometryIndex] = nullptr;
 		}
+		*/
 	}
 }
 
