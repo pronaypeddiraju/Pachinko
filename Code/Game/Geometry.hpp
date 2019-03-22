@@ -22,7 +22,7 @@ enum eGeometryType
 class Geometry
 {
 public:
-	explicit Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType, eGeometryType geometryType, const Vec2& cursorPosition, bool staticFloor = false);
+	explicit Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType, eGeometryType geometryType, const Vec2& cursorPosition, float rotationDegrees = 0.f, float length = 0.f, const Vec2& endPos = Vec2::ZERO, bool staticFloor = false);
 	~Geometry();
 
 

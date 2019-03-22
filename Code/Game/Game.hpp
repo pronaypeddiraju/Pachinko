@@ -6,6 +6,7 @@
 
 //Game systems
 #include "Game/GameCommon.hpp"
+#include "Game/Geometry.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 class Texture;
@@ -16,6 +17,7 @@ class GameCursor;
 class Geometry;
 class Shader;
 struct Camera;
+struct IntVec2;
 
 //------------------------------------------------------------------------------------------------------------------------------
 class Game
@@ -30,11 +32,18 @@ public:
 	
 	void					StartUp();
 	void					ShutDown();
-	void					HandleKeyPressed( unsigned char keyCode );
 	int						GetNextValidGeometryIndex(int index);
 	void					DebugEnabled();
 
+	void					HandleKeyPressed( unsigned char keyCode );
 	void					HandleKeyReleased( unsigned char keyCode );
+
+	bool					HandleMouseLBDown();
+	bool					HandleMouseLBUp();
+	bool					HandleMouseRBDown();
+	bool					HandleMouseRBUp();
+	bool					HandleMouseScroll(float wheelDelta);
+
 	void					Render() const;
 	void					RenderOnScreenInfo() const;
 	void					RenderAllGeometry() const;
@@ -48,6 +57,11 @@ public:
 	void					CheckCollisions();
 
 	bool					IsAlive();
+
+	static Vec2				GetClientToWorldPosition2D(IntVec2 mousePosInClient, IntVec2 ClientBounds);
+
+	void					ToggleSimType();
+	void					ChangeCurrentGeometry();
 
 private:
 
@@ -74,4 +88,13 @@ public:
 
 	Shader*					m_shader = nullptr;
 	std::string				m_xmlShaderPath = "default_unlit.xml";
+
+	eGeometryType			m_geometryType = BOX_GEOMETRY;
+	bool					m_isStatic = false;
+
+	Vec2					m_mouseStart = Vec2::ZERO;
+	Vec2					m_mouseEnd = Vec2::ZERO;
+
+	float					m_zoomLevel = 0.0f;
+	float					m_zoomMultiplier = 10.f;
 };

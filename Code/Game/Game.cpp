@@ -7,6 +7,7 @@
 #include "Engine/Core/DevConsole.hpp"
 #include "Engine/Core/EventSystems.hpp"
 #include "Engine/Core/VertexUtils.hpp"
+#include "Engine/Core/WindowContext.hpp"
 #include "Engine/Math/Disc2D.hpp"
 #include "Engine/Math/PhysicsSystem.hpp"
 #include "Engine/Math/MathUtils.hpp"
@@ -16,7 +17,6 @@
 
 //Game systems
 #include "Game/GameCursor.hpp"
-#include "Game/Geometry.hpp"
 
 //Globals
 Rgba* g_clearScreenColor = nullptr;
@@ -50,10 +50,17 @@ Game::~Game()
 
 void Game::StartUp()
 {
+	//Setup mouse startup values
+	IntVec2 clientCenter = g_windowContext->GetClientCenter();
+	g_windowContext->SetClientMousePosition(clientCenter);
+
+	g_windowContext->SetMouseMode(MOUSE_MODE_ABSOLUTE);
+	g_windowContext->HideMouse();
+
 	g_clearScreenColor = new Rgba(0.f, 0.f, 0.f, 1.f);
 	m_gameCursor = new GameCursor();
 
-	Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, Vec2(100.f, 10.f), true);
+	Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, Vec2(100.f, 10.f), 0.f, 0.f, Vec2(100.f, 10.f), true);
 	m_allGeometry.push_back(geometry);
 
 	//Create the Camera and setOrthoView
@@ -98,21 +105,19 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		case LEFT_ARROW:
 		case DOWN_ARROW:
 		m_gameCursor->HandleKeyPressed(keyCode);
-		break;
+		break;		
 		case SPACE_KEY:
 		{
-			//De-select object
-			m_selectedGeometry->m_rigidbody->SetSimulationMode(g_selectedSimType);
-			m_selectedGeometry->m_rigidbody->m_velocity = Vec2::ZERO;
-			m_selectedGeometry->m_rigidbody->m_mass = m_objectMass;
-			m_selectedGeometry->m_rigidbody->m_material.restitution = m_objectRestitution;
-
-			m_selectedGeometry = nullptr;
-			m_selectedIndex = -1;
+			ToggleSimType();
 			break;
 		}
 		case DEL_KEY:
 		{
+			if(m_selectedGeometry == nullptr)
+			{
+				return;
+			}
+
 			//Destroy selected object
 			delete m_selectedGeometry;
 			m_selectedGeometry = nullptr;
@@ -120,46 +125,13 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 			m_allGeometry[m_selectedIndex] = nullptr;
 			break;
 		}
+		case G_KEY:
+		{
+			ChangeCurrentGeometry();
+			break;
+		}
 		case TAB_KEY:
 		{
-			int numGeometry = static_cast<int>(m_allGeometry.size()) ;
-
-			if(m_selectedGeometry == nullptr)
-			{
-				//Select object for possession
-				float distMinSq = 200.f;
-				m_selectedIndex = 0;
-				for(int geometryIndex = 0; geometryIndex < numGeometry; geometryIndex++)
-				{
-					if(m_allGeometry[geometryIndex] == nullptr)
-					{
-						continue;
-					}
-
-					float distSq = GetDistanceSquared2D(m_gameCursor->GetCursorPositon(), m_allGeometry[geometryIndex]->m_transform.m_position);
-					if(distMinSq > distSq)
-					{
-						distMinSq = distSq;
-						m_selectedIndex = geometryIndex;
-					}
-				}
-			}
-			else
-			{
-				m_allGeometry[m_selectedIndex]->m_rigidbody->SetSimulationMode(g_selectedSimType);
-				m_allGeometry[m_selectedIndex]->m_rigidbody->m_velocity = Vec2::ZERO;
-				m_allGeometry[m_selectedIndex]->m_rigidbody->m_mass = m_objectMass;
-				m_allGeometry[m_selectedIndex]->m_rigidbody->m_material.restitution = m_objectRestitution;
-
-				m_selectedIndex = GetNextValidGeometryIndex(m_selectedIndex);
-			}
-
-			//Now select the actual object
-			m_selectedGeometry = m_allGeometry[m_selectedIndex];
-			g_selectedSimType = m_selectedGeometry->m_rigidbody->GetSimulationType();
-
-			m_selectedGeometry->m_rigidbody->SetSimulationMode(STATIC_SIMULATION);
-			m_gameCursor->SetCursorPosition(m_selectedGeometry->m_transform.m_position);
 			break;
 		}
 		case A_KEY:
@@ -181,11 +153,7 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		break;
 		case F1_KEY:
 		{
-			//F1 spawns a static box on the cursor position
-			Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, m_gameCursor->GetCursorPositon());
-			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
-
-			m_allGeometry.push_back(geometry);
+			break;
 		}
 		break;
 		case F2_KEY:
@@ -209,12 +177,7 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		break;
 		case F4_KEY:
 		{
-			//F4 spawns a dynamic disc on the cursor position
-			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, CAPSULE_GEOMETRY, m_gameCursor->GetCursorPositon());
-			geometry->m_rigidbody->m_mass = m_objectMass;
-			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
-
-			m_allGeometry.push_back(geometry);
+			break;
 		}
 		break;
 		case F5_KEY:
@@ -272,6 +235,158 @@ void Game::HandleKeyReleased(unsigned char keyCode)
 		default:
 		break;
 	}
+}
+
+bool Game::HandleMouseLBDown()
+{
+	int numGeometry = static_cast<int>(m_allGeometry.size()) ;
+
+	//Select object for possession
+	float distMinSq = 200.f;
+	m_selectedIndex = 0;
+	for(int geometryIndex = 0; geometryIndex < numGeometry; geometryIndex++)
+	{
+		if(m_allGeometry[geometryIndex] == nullptr)
+		{
+			continue;
+		}
+
+		float distSq = GetDistanceSquared2D(m_gameCursor->GetCursorPositon(), m_allGeometry[geometryIndex]->m_transform.m_position);
+		if(distMinSq > distSq)
+		{
+			distMinSq = distSq;
+			m_selectedIndex = geometryIndex;
+		}
+	}
+
+	//Now select the actual object
+	m_selectedGeometry = m_allGeometry[m_selectedIndex];
+	g_selectedSimType = m_selectedGeometry->m_rigidbody->GetSimulationType();
+
+	m_selectedGeometry->m_rigidbody->SetSimulationMode(STATIC_SIMULATION);
+	m_gameCursor->SetCursorPosition(m_selectedGeometry->m_transform.m_position);
+	return true;
+}
+
+bool Game::HandleMouseLBUp()
+{
+	/*
+	m_allGeometry[m_selectedIndex]->m_rigidbody->SetSimulationMode(g_selectedSimType);
+	m_allGeometry[m_selectedIndex]->m_rigidbody->m_velocity = Vec2::ZERO;
+	m_allGeometry[m_selectedIndex]->m_rigidbody->m_mass = m_objectMass;
+	m_allGeometry[m_selectedIndex]->m_rigidbody->m_material.restitution = m_objectRestitution;
+
+	m_selectedIndex = GetNextValidGeometryIndex(m_selectedIndex);
+
+	//Now select the actual object
+	m_selectedGeometry = m_allGeometry[m_selectedIndex];
+	g_selectedSimType = m_selectedGeometry->m_rigidbody->GetSimulationType();
+
+	m_selectedGeometry->m_rigidbody->SetSimulationMode(STATIC_SIMULATION);
+	m_gameCursor->SetCursorPosition(m_selectedGeometry->m_transform.m_position);
+	*/
+
+	if(m_selectedGeometry == nullptr)
+	{
+		return true;
+	}
+
+	//De-select object
+	m_selectedGeometry->m_rigidbody->SetSimulationMode(g_selectedSimType);
+	m_selectedGeometry->m_rigidbody->m_velocity = Vec2::ZERO;
+	m_selectedGeometry->m_rigidbody->m_mass = m_objectMass;
+	m_selectedGeometry->m_rigidbody->m_material.restitution = m_objectRestitution;
+
+	m_selectedGeometry = nullptr;
+	m_selectedIndex = -1;
+
+	return true;
+}
+
+bool Game::HandleMouseRBDown()
+{
+	m_mouseStart = GetClientToWorldPosition2D(g_windowContext->GetClientMousePosition(), g_windowContext->GetClientBounds());
+	return true;
+}
+
+bool Game::HandleMouseRBUp()
+{
+
+	m_mouseEnd = GetClientToWorldPosition2D(g_windowContext->GetClientMousePosition(), g_windowContext->GetClientBounds());
+
+	Geometry* geometry;
+
+	switch( m_geometryType )
+	{
+	case TYPE_UNKNOWN:
+	break;
+	case AABB2_GEOMETRY:
+	break;
+	case DISC_GEOMETRY:
+	break;
+	case BOX_GEOMETRY:
+	{
+		//Calculate Centre from mouse Start and End
+		Vec2 disp = m_mouseStart - m_mouseEnd;
+		Vec2 norm = disp.GetNormalized();
+		float length = disp.GetLength();
+
+		Vec2 center = m_mouseEnd + length * norm * 0.5f;
+		float rotationDegrees = disp.GetAngleDegrees() + 90.f;
+
+		if(m_isStatic)
+		{
+			geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, center, rotationDegrees, length);
+		}
+		else
+		{
+			geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, BOX_GEOMETRY, center, rotationDegrees, length);
+		}
+		geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
+		m_allGeometry.push_back(geometry);
+
+	}
+	break;
+	case CAPSULE_GEOMETRY:
+	{
+		if(m_isStatic)
+		{
+			geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, CAPSULE_GEOMETRY, m_mouseStart, 0.f, 0.f, m_mouseEnd);
+		}
+		else
+		{
+			geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, CAPSULE_GEOMETRY, m_mouseStart, 0.f, 0.f, m_mouseEnd);
+		}
+		geometry->m_rigidbody->m_mass = m_objectMass;
+		geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
+
+		m_allGeometry.push_back(geometry);
+	}
+	break;
+	case NUM_GEOMETRY_TYPES:
+	break;
+	default:
+	break;
+	}
+
+	return true;
+}
+
+bool Game::HandleMouseScroll(float wheelDelta)
+{
+	m_zoomLevel += wheelDelta;
+	m_zoomLevel = Clamp(m_zoomLevel, 0.00001f, MAX_ZOOM_STEPS);
+
+	//Recalculate mins and maxes based on the zoom level
+	float newMinX = 0.f + m_zoomLevel * SCREEN_ASPECT;
+	float newMinY = 0.f + m_zoomLevel;
+
+	float newMaxX = WORLD_WIDTH - m_zoomLevel * SCREEN_ASPECT;
+	float newMaxY = WORLD_HEIGHT - m_zoomLevel;
+
+	m_mainCamera->SetOrthoView(Vec2(newMinX, newMinY), Vec2(newMaxX, newMaxY));
+
+	return true;
 }
 
 void Game::Render() const
@@ -352,6 +467,57 @@ void Game::RenderOnScreenInfo() const
 
 	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 7), m_fontHeight, printStringRestitution, Rgba::YELLOW);
 
+	std::string printStringSimType = "Simulation (Space Key) : ";
+	if(m_isStatic)
+	{
+		printStringSimType += "Static";
+	}
+	else
+	{
+		printStringSimType += "Dynamic";
+	}
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 9), m_fontHeight, printStringSimType, Rgba::ORANGE);
+
+	std::string printStringObjType = "Geometry (G Key) : ";
+	switch( m_geometryType )
+	{
+	case TYPE_UNKNOWN:
+	break;
+	case AABB2_GEOMETRY:
+	printStringObjType += "AABB2";
+	break;
+	case DISC_GEOMETRY:
+	printStringObjType += "DISC";
+	break;
+	case BOX_GEOMETRY:
+	printStringObjType += "OBB";
+	break;
+	case CAPSULE_GEOMETRY:
+	printStringObjType += "CAPSULE";
+	break;
+	case NUM_GEOMETRY_TYPES:
+	break;
+	default:
+	break;
+	}
+
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, WORLD_HEIGHT - m_fontHeight * 10), m_fontHeight, printStringObjType, Rgba::YELLOW);
+
+	//Mouse Debug
+
+	std::string printStringMousePos = "Mouse Position : ";
+	printStringMousePos += std::to_string(g_windowContext->GetClientMousePosition().x);
+	printStringMousePos += ", ";
+	printStringMousePos += std::to_string(g_windowContext->GetClientMousePosition().y);
+
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, 10.f), m_fontHeight, printStringMousePos, Rgba::WHITE);
+
+	std::string printStringClientBounds = "Client Bounds: ";
+	printStringClientBounds += std::to_string(g_windowContext->GetClientBounds().x);
+	printStringClientBounds += ", ";
+	printStringClientBounds += std::to_string(g_windowContext->GetClientBounds().y);
+
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(m_fontHeight, 10.f - m_fontHeight), m_fontHeight, printStringClientBounds, Rgba::WHITE);
 
 	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
 	g_renderContext->DrawVertexArray(textVerts);
@@ -461,4 +627,50 @@ bool Game::IsAlive()
 {
 	//Check if alive
 	return m_isGameAlive;
+}
+
+STATIC Vec2 Game::GetClientToWorldPosition2D( IntVec2 mousePosInClient, IntVec2 ClientBounds )
+{
+	Clamp(static_cast<float>(mousePosInClient.x), 0.f, static_cast<float>(ClientBounds.x));
+	Clamp(static_cast<float>(mousePosInClient.y), 0.f, static_cast<float>(ClientBounds.y));
+
+	float posOnX = RangeMapFloat(static_cast<float>(mousePosInClient.x), 0.0f, static_cast<float>(ClientBounds.x), 0.f, WORLD_WIDTH);
+	float posOnY = RangeMapFloat(static_cast<float>(mousePosInClient.y), static_cast<float>(ClientBounds.y), 0.f, 0.f, WORLD_HEIGHT);
+
+	return Vec2(posOnX, posOnY);
+}
+
+void Game::ToggleSimType()
+{
+	m_isStatic = !m_isStatic;
+}
+
+void Game::ChangeCurrentGeometry()
+{
+	//For future use cases
+	
+	/*
+	int geometryID = m_geometryType;
+
+	if(geometryID < NUM_GEOMETRY_TYPES)
+	{
+		geometryID++;
+	}
+	else
+	{
+		geometryID = 0;
+	}
+
+	m_geometryType = eGeometryType(geometryID);
+	*/
+
+	//Only for A03
+	if(m_geometryType == BOX_GEOMETRY)
+	{
+		m_geometryType = CAPSULE_GEOMETRY;
+	}
+	else
+	{
+		m_geometryType = BOX_GEOMETRY;
+	}
 }

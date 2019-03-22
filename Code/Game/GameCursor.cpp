@@ -2,7 +2,11 @@
 #include "Game/GameCursor.hpp"
 //Engine Systems
 #include "Engine/Core/VertexUtils.hpp"
+#include "Engine/Core/WindowContext.hpp"
+#include "Engine/Math/MathUtils.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
+//Game Systems
+#include "Game/Game.hpp"
 
 //------------------------------------------------------------------------------------------------------------------------------
 
@@ -24,6 +28,9 @@ void GameCursor::StartUp()
 void GameCursor::Update( float deltaTime )
 {
 	UNUSED(deltaTime);
+	
+	//To Control Mouse using Arrow keys
+	/*
 	m_cursorPosition += m_movementVector * m_cursorSpeed;
 
 	if(m_cursorPosition.x < 0.f)
@@ -43,6 +50,15 @@ void GameCursor::Update( float deltaTime )
 	{
 		m_cursorPosition.y = WORLD_HEIGHT;
 	}
+	*/
+
+	//New code to implement cursor at mouse position;
+	IntVec2 intVecPos = g_windowContext->GetClientMousePosition();
+	IntVec2 clientBounds = g_windowContext->GetClientBounds();
+
+	Vec2 worldPos = Game::GetClientToWorldPosition2D(intVecPos, clientBounds);
+
+	m_cursorPosition = worldPos;
 }
 
 void GameCursor::Render() const

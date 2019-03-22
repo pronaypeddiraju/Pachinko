@@ -202,6 +202,8 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 		case KEY_GREATER:
 		case N_KEY:
 		case M_KEY:
+		case S_KEY:
+		case G_KEY:
 			m_game->HandleKeyPressed(keyCode);
 			return true;
 		break;
@@ -257,6 +259,35 @@ bool App::HandleCharacter( unsigned char charCode )
 	UNUSED(charCode);
 	//m_game->HandleCharacter(charCode);
 	return false;
+}
+
+bool App::HandleMouseLBDown()
+{
+	//Implement Mouse Left button down logic here
+	return m_game->HandleMouseLBDown();
+}
+
+bool App::HandleMouseLBUp()
+{
+	//Implement Mouse Left button Up logic here
+	return m_game->HandleMouseLBUp();
+}
+
+bool App::HandleMouseRBDown()
+{
+	//Implement Mouse Right Button Down logic here
+	return m_game->HandleMouseRBDown();
+}
+
+bool App::HandleMouseRBUp()
+{
+	//Implement Mouse Right Button Up logic here
+	return m_game->HandleMouseRBUp();	
+}
+
+bool App::HandleMouseScroll(float wheelDelta)
+{
+	return m_game->HandleMouseScroll(wheelDelta);
 }
 
 bool App::HandleQuitRequested()

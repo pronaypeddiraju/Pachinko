@@ -1,14 +1,15 @@
 //------------------------------------------------------------------------------------------------------------------------------
 #include "Game/Geometry.hpp"
 //Engine Systems
+#include "Engine/Math/Collider2D.hpp"
+#include "Engine/Math/MathUtils.hpp"
 #include "Engine/Math/PhysicsSystem.hpp"
 #include "Engine/Math/Rigidbody2D.hpp"
-#include "Engine/Math/Collider2D.hpp"
 #include "Engine/Math/RandomNumberGenerator.hpp"
 //Game Systems
 #include "Game/GameCommon.hpp"
 
-Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType, eGeometryType geometryType, const Vec2& cursorPosition, bool staticFloor)
+Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType, eGeometryType geometryType, const Vec2& cursorPosition, float rotationDegrees, float length, const Vec2& endPos, bool staticFloor)
 {
 	// First, give it a rigidbody to represent itself in the physics system
 	m_rigidbody = physicsSystem.CreateRigidbody(simulationType);
@@ -62,14 +63,12 @@ Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType,
 	case BOX_GEOMETRY:
 	{
 		Vec2 size;
-		float rotationDegrees = 0.f;
 
 		if(!staticFloor)
 		{
-			size = Vec2(g_randomNumGen->GetRandomFloatInRange(BOX_MIN_WIDTH, BOX_MAX_WIDTH), g_randomNumGen->GetRandomFloatInRange(BOX_MIN_WIDTH, BOX_MAX_WIDTH));
+			size = Vec2(g_randomNumGen->GetRandomFloatInRange(BOX_MIN_WIDTH, BOX_MAX_WIDTH), length);
 			
-			rotationDegrees = g_randomNumGen->GetRandomFloatInRange(0.f, 360.f);
-			
+			//rotationDegrees = g_randomNumGen->GetRandomFloatInRange(0.f, 360.f);
 			//For easy debugging let's make it 45 degrees
 			//rotationDegrees = 0.f;
 		}
@@ -87,7 +86,7 @@ Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType,
 	{
 		float radius = g_randomNumGen->GetRandomFloatInRange(DISC_MIN_RADIUS, DISC_MAX_RADIUS);
 
-		m_collider = m_rigidbody->SetCollider( new CapsuleCollider2D(cursorPosition, cursorPosition + Vec2(0.f, -10.0f), radius) );  
+		m_collider = m_rigidbody->SetCollider( new CapsuleCollider2D(cursorPosition, endPos, radius) );  
 		m_collider->m_colliderType = COLLIDER_CAPSULE;
 		m_collider->m_rigidbody = m_rigidbody;
 	}

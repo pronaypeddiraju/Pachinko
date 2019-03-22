@@ -84,7 +84,48 @@ static bool AppWindowProc( void* windowHandle, uint32_t wmMessageCode, uintptr_t
 				return 0;
 			}
 		}
+				
 	}
+
+	case WM_LBUTTONDOWN:
+	{
+		g_theApp->HandleMouseLBDown();
+		break;
+	}
+	case WM_LBUTTONUP:
+	{
+		g_theApp->HandleMouseLBUp();
+		break;
+	}
+	case WM_RBUTTONDOWN:
+	{
+		g_theApp->HandleMouseRBDown();
+		break;
+	}
+	case WM_RBUTTONUP:
+	{
+		g_theApp->HandleMouseRBUp();
+		break;
+	}
+	case WM_MBUTTONDOWN:
+	{
+		break;
+	}
+	case  WM_MBUTTONUP:
+	{
+		break;
+	}
+	case WM_MOUSEWHEEL:
+	{
+		float wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
+		g_theApp->HandleMouseScroll(wheelDelta);
+		break;
+	}
+	case WM_MOUSEHWHEEL:
+	{
+		break;
+	}
+
 	}
 
 	// Send back to Windows any unhandled/unconsumed messages we want other apps to see (e.g. play/pause in music apps, etc.)
