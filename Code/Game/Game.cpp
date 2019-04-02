@@ -177,7 +177,7 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		case F3_KEY:
 		{
 			//F3 spawns a dynamic box on the cursor position
-			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, BOX_GEOMETRY, m_gameCursor->GetCursorPositon());
+			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, BOX_GEOMETRY, m_gameCursor->GetCursorPositon(), 0.f, 3.f, m_gameCursor->GetCursorPositon() + Vec2(10.f, 10.f));
 			geometry->m_rigidbody->m_mass = m_objectMass;
 			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 
@@ -186,7 +186,12 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		break;
 		case F4_KEY:
 		{
-			break;
+			//F4 spawns a dynamic box on the cursor position (Rotated by 90 degrees
+			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, BOX_GEOMETRY, m_gameCursor->GetCursorPositon(), 90.f, 3.f, m_gameCursor->GetCursorPositon() + Vec2(10.f, 10.f));
+			geometry->m_rigidbody->m_mass = m_objectMass;
+			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
+
+			m_allGeometry.push_back(geometry);
 		}
 		break;
 		case F5_KEY:
