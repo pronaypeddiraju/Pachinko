@@ -49,6 +49,8 @@ Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType,
 		m_collider = m_rigidbody->SetCollider( new AABB2Collider(minBounds, maxBounds) );  
 		m_collider->m_colliderType = COLLIDER_AABB2;
 		m_collider->m_rigidbody = m_rigidbody;
+
+
 	}
 	break;
 	case DISC_GEOMETRY:

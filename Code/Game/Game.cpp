@@ -5,6 +5,7 @@
 #include "Engine/Core/EventSystems.hpp"
 #include "Engine/Core/VertexUtils.hpp"
 #include "Engine/Core/WindowContext.hpp"
+#include "Engine/Math/Collider2D.hpp"
 #include "Engine/Math/Disc2D.hpp"
 #include "Engine/Math/MathUtils.hpp"
 #include "Engine/Math/PhysicsSystem.hpp"
@@ -170,6 +171,7 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 			//F2 spawns a static disc on the cursor position
 			Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, CAPSULE_GEOMETRY, m_gameCursor->GetCursorPositon());
 			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
+			geometry->m_collider->SetMomentForObject();
 
 			m_allGeometry.push_back(geometry);
 		}
@@ -179,7 +181,9 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 			//F3 spawns a dynamic box on the cursor position
 			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, BOX_GEOMETRY, m_gameCursor->GetCursorPositon(), 0.f, 3.f, m_gameCursor->GetCursorPositon() + Vec2(10.f, 10.f));
 			geometry->m_rigidbody->m_mass = m_objectMass;
+			geometry->m_collider->SetMomentForObject();
 			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
+
 
 			m_allGeometry.push_back(geometry);
 		}
@@ -189,6 +193,7 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 			//F4 spawns a dynamic box on the cursor position (Rotated by 90 degrees
 			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, BOX_GEOMETRY, m_gameCursor->GetCursorPositon(), 90.f, 3.f, m_gameCursor->GetCursorPositon() + Vec2(10.f, 10.f));
 			geometry->m_rigidbody->m_mass = m_objectMass;
+			geometry->m_collider->SetMomentForObject();
 			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 
 			m_allGeometry.push_back(geometry);
@@ -289,22 +294,6 @@ bool Game::HandleMouseLBDown()
 
 bool Game::HandleMouseLBUp()
 {
-	/*
-	m_allGeometry[m_selectedIndex]->m_rigidbody->SetSimulationMode(g_selectedSimType);
-	m_allGeometry[m_selectedIndex]->m_rigidbody->m_velocity = Vec2::ZERO;
-	m_allGeometry[m_selectedIndex]->m_rigidbody->m_mass = m_objectMass;
-	m_allGeometry[m_selectedIndex]->m_rigidbody->m_material.restitution = m_objectRestitution;
-
-	m_selectedIndex = GetNextValidGeometryIndex(m_selectedIndex);
-
-	//Now select the actual object
-	m_selectedGeometry = m_allGeometry[m_selectedIndex];
-	g_selectedSimType = m_selectedGeometry->m_rigidbody->GetSimulationType();
-
-	m_selectedGeometry->m_rigidbody->SetSimulationMode(STATIC_SIMULATION);
-	m_gameCursor->SetCursorPosition(m_selectedGeometry->m_transform.m_position);
-	*/
-
 	if(m_selectedGeometry == nullptr)
 	{
 		return true;
@@ -362,6 +351,8 @@ bool Game::HandleMouseRBUp()
 			geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, BOX_GEOMETRY, center, rotationDegrees, length);
 		}
 		geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
+		geometry->m_rigidbody->m_mass = m_objectMass;
+		geometry->m_collider->SetMomentForObject();
 		m_allGeometry.push_back(geometry);
 
 	}
@@ -377,6 +368,7 @@ bool Game::HandleMouseRBUp()
 			geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, CAPSULE_GEOMETRY, m_mouseStart, 0.f, 0.f, m_mouseEnd);
 		}
 		geometry->m_rigidbody->m_mass = m_objectMass;
+		geometry->m_collider->SetMomentForObject();
 		geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 
 		m_allGeometry.push_back(geometry);
