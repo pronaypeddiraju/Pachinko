@@ -16,6 +16,7 @@
 struct vs_input_t 
 {
    float3 position      : POSITION;
+   float3 normal        : NORMAL;
    float4 color         : COLOR; 
    float2 uv            : TEXCOORD; 
 }; 
@@ -74,9 +75,10 @@ SamplerState sAlbedo : register(s0);      // sampler I'm using for the Albedo te
 // for passing data from vertex to fragment (v-2-f)
 struct v2f_t 
 {
-   float4 position : SV_POSITION; 
-   float4 color : COLOR; 
-   float2 uv : UV; 
+   float4 position   : SV_POSITION; 
+   float4 normal     : NORMAL;
+   float4 color      : COLOR; 
+   float2 uv         : UV; 
 }; 
 
 //--------------------------------------------------------------------------------------
@@ -96,8 +98,17 @@ v2f_t VertexFunction(vs_input_t input)
    float4 view_pos = mul( VIEW, world_pos ); 
    float4 clip_pos = mul( PROJECTION, view_pos ); 
 
-   v2f.position = clip_pos; 
-   v2f.color = input.color; 
+   v2f.position = clip_pos;
+
+   //v2f.color = input.color; 
+
+   float4 normals = mul( MODEL, float4(input.normal, 0.f));
+
+   v2f.color.x = RangeMap(normals.x, -1.0f, 1.0f, 0.0f, 1.0f);
+   v2f.color.y = RangeMap(normals.y, -1.0f, 1.0f, 0.0f, 1.0f);
+   v2f.color.z = RangeMap(normals.z, -1.0f, 1.0f, 0.0f, 1.0f);
+   v2f.color.w = 1.0f;
+
    v2f.uv = input.uv; 
    
     
@@ -112,10 +123,10 @@ v2f_t VertexFunction(vs_input_t input)
 float4 FragmentFunction( v2f_t input ) : SV_Target0
 {
    // First, we sample from our texture
-   float4 texColor = tAlbedo.Sample( sAlbedo, input.uv ); 
+   //float4 texColor = tAlbedo.Sample( sAlbedo, input.uv ); 
 
    // component wise multiply to "tint" the output
-   float4 finalColor = texColor * input.color; 
+   float4 finalColor = input.color; 
 
    // output it; 
    return finalColor; 

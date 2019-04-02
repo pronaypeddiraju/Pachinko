@@ -1,18 +1,20 @@
 //------------------------------------------------------------------------------------------------------------------------------
 #include "Game/Game.hpp"
 //Engine Systems
-#include "Engine/Math/RandomNumberGenerator.hpp"
-#include "Engine/Renderer/Camera.hpp"
-#include "Engine/Renderer/RenderContext.hpp"
 #include "Engine/Core/DevConsole.hpp"
 #include "Engine/Core/EventSystems.hpp"
 #include "Engine/Core/VertexUtils.hpp"
 #include "Engine/Core/WindowContext.hpp"
 #include "Engine/Math/Disc2D.hpp"
-#include "Engine/Math/PhysicsSystem.hpp"
 #include "Engine/Math/MathUtils.hpp"
+#include "Engine/Math/PhysicsSystem.hpp"
+#include "Engine/Math/RandomNumberGenerator.hpp"
 #include "Engine/Math/RigidBodyBucket.hpp"
 #include "Engine/Renderer/BitmapFont.hpp"
+#include "Engine/Renderer/Camera.hpp"
+#include "Engine/Renderer/ColorTargetView.hpp"
+#include "Engine/Renderer/DebugRender.hpp"
+#include "Engine/Renderer/RenderContext.hpp"
 #include "Engine/Renderer/Shader.hpp"
 
 //Game systems
@@ -38,6 +40,7 @@ Game::Game()
 	m_squirrelFont = g_renderContext->CreateOrGetBitmapFontFromFile("SquirrelFixedFont");
 
 	g_devConsole->SetBitmapFont(*m_squirrelFont);
+	g_debugRenderer->SetDebugFont(m_squirrelFont);
 	g_randomNumGen = new RandomNumberGenerator();
 }
 
@@ -566,10 +569,53 @@ void Game::RenderAllGeometry() const
 	*/
 }
 
+void Game::DebugRenderToScreen() const
+{
+	Camera& debugCamera = g_debugRenderer->Get2DCamera();
+	debugCamera.m_colorTargetView = g_renderContext->GetFrameColorTarget();
+
+	g_renderContext->BindShader(m_shader);
+	g_renderContext->BeginCamera(debugCamera);
+
+	g_debugRenderer->DebugRenderToScreen();
+
+	g_renderContext->EndCamera();
+
+}
+
+void Game::DebugRenderToCamera() const
+{
+	Camera& debugCamera3D = *m_mainCamera;
+	debugCamera3D.m_colorTargetView = g_renderContext->GetFrameColorTarget();
+
+	g_renderContext->BindShader(m_shader);
+	g_renderContext->BeginCamera(debugCamera3D);
+
+	g_debugRenderer->Setup3DCamera(&debugCamera3D);
+	g_debugRenderer->DebugRenderToCamera();
+
+	g_renderContext->EndCamera();
+}
+
 void Game::PostRender()
 {
 	//Debug bools
 	m_consoleDebugOnce = true;
+
+	if(!m_isDebugSetup)
+	{
+		//SetStartupDebugRenderObjects();
+
+		ColorTargetView* ctv = g_renderContext->GetFrameColorTarget();
+		//Setup debug render client data
+		g_debugRenderer->SetClientDimensions( ctv->m_height, ctv->m_width );
+		g_debugRenderer->SetWorldSize2D(m_mainCamera->GetOrthoBottomLeft(), m_mainCamera->GetOrthoTopRight());
+
+		m_isDebugSetup = true;
+	}
+
+	//All screen Debug information
+	DebugRenderToScreen();
 }
 
 //Calls the UpdateShip function in playerShip

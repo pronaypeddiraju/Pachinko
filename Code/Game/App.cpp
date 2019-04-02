@@ -1,16 +1,17 @@
 //------------------------------------------------------------------------------------------------------------------------------
 #include "Game/App.hpp"
 //Engine Systems
-#include "Engine/Renderer/RenderContext.hpp"
-#include "Engine/Input/InputSystem.hpp"
 #include "Engine/Audio/AudioSystem.hpp"
-#include "Engine/Core/XMLUtils/XMLUtils.hpp"
-#include "Engine/Core/NamedStrings.hpp"
-#include "Engine/Core/Time.hpp"
-#include "Engine/Math/MathUtils.hpp"
 #include "Engine/Core/DevConsole.hpp"
 #include "Engine/Core/EventSystems.hpp"
+#include "Engine/Core/NamedStrings.hpp"
+#include "Engine/Core/Time.hpp"
+#include "Engine/Core/XMLUtils/XMLUtils.hpp"
+#include "Engine/Input/InputSystem.hpp"
+#include "Engine/Math/MathUtils.hpp"
 #include "Engine/Math/PhysicsSystem.hpp"
+#include "Engine/Renderer/DebugRender.hpp"
+#include "Engine/Renderer/RenderContext.hpp"
 //Game Systems
 #include "Game/Game.hpp"
 
@@ -71,6 +72,10 @@ void App::StartUp()
 	//g_renderContext = new RenderContext();
 	//g_renderContext->Startup();
 	
+	//Create the Debug Render System
+	g_debugRenderer = new DebugRender();
+	g_debugRenderer->Startup(g_renderContext);
+
 	//Create the Input System
 	g_inputSystem = new InputSystem();
 
@@ -103,6 +108,9 @@ void App::ShutDown()
 	delete g_renderContext;
 	g_renderContext = nullptr;
 
+	delete g_debugRenderer;
+	g_debugRenderer = nullptr;
+
 	delete g_inputSystem;
 	g_inputSystem = nullptr;
 
@@ -133,6 +141,7 @@ void App::RunFrame()
 void App::EndFrame()
 {
 	g_renderContext->EndFrame();
+	g_debugRenderer->EndFrame();
 	g_inputSystem->EndFrame();
 	g_audio->EndFrame();
 	g_devConsole->EndFrame();
@@ -142,6 +151,7 @@ void App::EndFrame()
 void App::BeginFrame()
 {
 	g_renderContext->BeginFrame();
+	g_debugRenderer->BeginFrame();
 	g_inputSystem->BeginFrame();
 	g_audio->BeginFrame();
 	g_eventSystem->BeginFrame();
@@ -156,7 +166,9 @@ void App::Update()
 
 	deltaTime = Clamp(deltaTime, 0.0f, 0.1f);
 
+	g_debugRenderer->Update(deltaTime);
 	m_game->Update(deltaTime);
+
 }
 
 void App::Render() const

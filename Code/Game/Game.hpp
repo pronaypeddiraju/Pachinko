@@ -49,6 +49,10 @@ public:
 	void					RenderWorldBounds() const;
 	void					RenderOnScreenInfo() const;
 	void					RenderAllGeometry() const;
+
+	void					DebugRenderToScreen() const;
+	void					DebugRenderToCamera() const;
+
 	void					PostRender();
 
 	void					Update( float deltaTime );
@@ -102,4 +106,7 @@ public:
 	float					m_zoomMultiplier = 10.f;
 
 	AABB2					m_worldBounds;
+
+	//Debug Render Variable
+	bool					m_isDebugSetup = false;
 };

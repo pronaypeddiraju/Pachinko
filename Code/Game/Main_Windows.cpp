@@ -108,11 +108,9 @@ static bool AppWindowProc( void* windowHandle, uint32_t wmMessageCode, uintptr_t
 	}
 	case WM_MBUTTONDOWN:
 	{
-		break;
 	}
 	case  WM_MBUTTONUP:
 	{
-		break;
 	}
 	case WM_MOUSEWHEEL:
 	{
@@ -122,10 +120,11 @@ static bool AppWindowProc( void* windowHandle, uint32_t wmMessageCode, uintptr_t
 	}
 	case WM_MOUSEHWHEEL:
 	{
-		break;
 	}
 
 	}
+
+
 
 	// Send back to Windows any unhandled/unconsumed messages we want other apps to see (e.g. play/pause in music apps, etc.)
 	return false; 
