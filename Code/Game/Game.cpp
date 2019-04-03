@@ -173,6 +173,7 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 			//F2 spawns a static disc on the cursor position
 			Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, CAPSULE_GEOMETRY, m_gameCursor->GetCursorPositon());
 			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
+			geometry->m_rigidbody->m_mass = INFINITY;
 			geometry->m_collider->SetMomentForObject();
 
 			m_allGeometry.push_back(geometry);
@@ -326,6 +327,15 @@ bool Game::HandleMouseRBUp()
 
 	Geometry* geometry;
 
+	//Calculate the object center, rotation and bounds
+	Vec2 disp = m_mouseStart - m_mouseEnd;
+	Vec2 norm = disp.GetNormalized();
+	float length = disp.GetLength();
+
+	Vec2 center = m_mouseEnd + length * norm * 0.5f;
+	float rotationDegrees = disp.GetAngleDegrees() + 90.f;
+
+	//Switch on geometry type and construct required collider
 	switch( m_geometryType )
 	{
 	case TYPE_UNKNOWN:
@@ -337,16 +347,12 @@ bool Game::HandleMouseRBUp()
 	case BOX_GEOMETRY:
 	{
 		//Calculate Centre from mouse Start and End
-		Vec2 disp = m_mouseStart - m_mouseEnd;
-		Vec2 norm = disp.GetNormalized();
-		float length = disp.GetLength();
-
-		Vec2 center = m_mouseEnd + length * norm * 0.5f;
-		float rotationDegrees = disp.GetAngleDegrees() + 90.f;
+		
 
 		if(m_isStatic)
 		{
 			geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, center, rotationDegrees, length);
+			geometry->m_rigidbody->m_mass = INFINITY;
 		}
 		else
 		{
@@ -363,11 +369,12 @@ bool Game::HandleMouseRBUp()
 	{
 		if(m_isStatic)
 		{
-			geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, CAPSULE_GEOMETRY, m_mouseStart, 0.f, 0.f, m_mouseEnd);
+			geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, CAPSULE_GEOMETRY, m_mouseStart, rotationDegrees, 0.f, m_mouseEnd);
+			geometry->m_rigidbody->m_mass = INFINITY;
 		}
 		else
 		{
-			geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, CAPSULE_GEOMETRY, m_mouseStart, 0.f, 0.f, m_mouseEnd);
+			geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, CAPSULE_GEOMETRY, m_mouseStart, rotationDegrees, 0.f, m_mouseEnd);
 		}
 		geometry->m_rigidbody->m_mass = m_objectMass;
 		geometry->m_collider->SetMomentForObject();
