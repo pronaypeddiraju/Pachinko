@@ -432,6 +432,8 @@ void Game::Render() const
 
 	RenderOnScreenInfo();
 
+	RenderDebugObjectInfo();
+
 	m_gameCursor->Render();
 
 	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
@@ -824,5 +826,71 @@ void Game::ChangeCurrentGeometry()
 	else
 	{
 		m_geometryType = BOX_GEOMETRY;
+	}
+}
+
+void Game::RenderDebugObjectInfo() const
+{
+	Vec2 mousePos = GetClientToWorldPosition2D(g_windowContext->GetClientMousePosition(), g_windowContext->GetClientBounds());
+
+	//Render the debug information of the object under the cursor
+	int numGeometry = static_cast<int>(m_allGeometry.size());
+	for(int index = 0; index < numGeometry; index++)
+	{
+		if(m_allGeometry[index]->m_collider->Contains(m_gameCursor->GetCursorPositon()))
+		{
+			//Print the debug information
+			std::vector<Vertex_PCU> lineVerts;
+			Vec2 offSetPos = mousePos + m_debugOffset;
+			AddVertsForLine2D(lineVerts, mousePos, offSetPos, 0.5f, Rgba::WHITE);
+			
+			int numStrings = 0;
+
+			std::vector<Vertex_PCU> textVerts;
+
+			std::string printPosition = "Position : ";
+			printPosition += std::to_string(m_allGeometry[index]->m_transform.m_position.x);
+			printPosition += ", ";
+			printPosition += std::to_string(m_allGeometry[index]->m_transform.m_position.y);
+
+			m_squirrelFont->AddVertsForText2D(textVerts, offSetPos, m_debugFontHeight, printPosition);
+
+			++numStrings;
+
+			std::string printMass = "Mass : ";
+			printMass += std::to_string(m_allGeometry[index]->m_rigidbody->m_mass);
+
+			m_squirrelFont->AddVertsForText2D(textVerts, offSetPos - Vec2(0, m_debugFontHeight * numStrings), m_debugFontHeight, printMass);
+
+			++numStrings;
+
+			std::string printVelocity = "Velocity : ";
+			printVelocity += std::to_string(m_allGeometry[index]->m_rigidbody->m_velocity.x);
+			printVelocity += ", ";
+			printVelocity += std::to_string(m_allGeometry[index]->m_rigidbody->m_velocity.y);
+
+			m_squirrelFont->AddVertsForText2D(textVerts, offSetPos - Vec2(0, m_debugFontHeight * numStrings), m_debugFontHeight, printVelocity);
+
+			++numStrings;
+
+			std::string printMoment = "Moment of Inertia : ";
+			printMoment += std::to_string(m_allGeometry[index]->m_rigidbody->m_momentOfInertia);
+			
+			m_squirrelFont->AddVertsForText2D(textVerts, offSetPos - Vec2(0, m_debugFontHeight * numStrings), m_debugFontHeight, printMoment);
+
+			++numStrings;
+				
+			std::string printAngular = "Angular Velocity: ";
+			printAngular += std::to_string(m_allGeometry[index]->m_rigidbody->m_angularVelocity);
+
+			m_squirrelFont->AddVertsForText2D(textVerts, offSetPos - Vec2(0, m_debugFontHeight * numStrings), m_debugFontHeight, printAngular);
+
+			++numStrings;
+
+			g_renderContext->BindTextureViewWithSampler(0U, nullptr);
+			g_renderContext->DrawVertexArray(lineVerts);
+			g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
+			g_renderContext->DrawVertexArray(textVerts);
+		}
 	}
 }

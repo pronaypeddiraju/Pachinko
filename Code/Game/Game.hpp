@@ -49,6 +49,7 @@ public:
 	void					RenderWorldBounds() const;
 	void					RenderOnScreenInfo() const;
 	void					RenderAllGeometry() const;
+	void					RenderDebugObjectInfo() const;
 
 	void					DebugRenderToScreen() const;
 	void					DebugRenderToCamera() const;
@@ -109,4 +110,6 @@ public:
 
 	//Debug Render Variable
 	bool					m_isDebugSetup = false;
+	Vec2					m_debugOffset = Vec2(20.f, 20.f);
+	float					m_debugFontHeight = 2.f;
 };
