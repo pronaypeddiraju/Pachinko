@@ -79,7 +79,8 @@ Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType,
 			size = Vec2(80.f, 10.f);
 		}
 
-		m_collider = m_rigidbody->SetCollider( new BoxCollider2D(Vec2::ZERO, size, rotationDegrees) );  
+		m_collider = m_rigidbody->SetCollider( new BoxCollider2D(Vec2::ZERO, size, rotationDegrees) );
+		m_rigidbody->m_rotation = rotationDegrees;
 		m_collider->m_colliderType = COLLIDER_BOX;
 		m_collider->m_rigidbody = m_rigidbody;
 	}
@@ -96,6 +97,7 @@ Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType,
 		m_transform.m_position = cursorPosition + norm * lengthCapsule * 0.5f;
 
 		m_collider = m_rigidbody->SetCollider( new CapsuleCollider2D(cursorPosition, endPos, radius) );  
+		m_rigidbody->m_rotation = rotationDegrees;
 		m_collider->m_colliderType = COLLIDER_CAPSULE;
 		m_collider->m_rigidbody = m_rigidbody;
 	}

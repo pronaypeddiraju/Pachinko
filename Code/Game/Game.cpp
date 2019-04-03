@@ -71,6 +71,8 @@ void Game::StartUp()
 
 	//Create the static floor object
 	Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, Vec2(100.f, 10.f), 0.f, 0.f, Vec2(100.f, 10.f), true);
+	geometry->m_rigidbody->m_mass = INFINITY;
+	geometry->m_collider->SetMomentForObject();
 	m_allGeometry.push_back(geometry);
 
 	//Create the Camera and setOrthoView
