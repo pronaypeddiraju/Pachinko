@@ -73,6 +73,8 @@ public:
 	void					ToggleSimType();
 	void					ChangeCurrentGeometry();
 
+	void					SaveToFile(const std::string& filePath);
+
 private:
 
 	bool					m_isGameAlive = false;

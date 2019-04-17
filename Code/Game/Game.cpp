@@ -460,22 +460,18 @@ bool Game::HandleMouseRBUp()
 		{
 			geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, center, rotationDegrees, length);
 			geometry->m_rigidbody->m_mass = INFINITY;
-			//Set the new RB values to object
-			geometry->m_rigidbody->m_friction = m_objectFriction;
-			geometry->m_rigidbody->m_angularDrag = m_objectLinearDrag;
-			geometry->m_rigidbody->m_linearDrag = m_objectAngularDrag;
 			geometry->m_rigidbody->SetConstraints(false, false, false);
 		}
 		else
 		{
 			geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, BOX_GEOMETRY, center, rotationDegrees, length);
+			geometry->m_rigidbody->m_mass = m_objectMass;
+			geometry->m_rigidbody->SetConstraints(m_xFreedom, m_yFreedom, m_rotationFreedom);
 		}
 		geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
-		geometry->m_rigidbody->m_mass = m_objectMass;
 		geometry->m_rigidbody->m_friction = m_objectFriction;
-		geometry->m_rigidbody->m_angularDrag = m_objectLinearDrag;
-		geometry->m_rigidbody->m_linearDrag = m_objectAngularDrag;
-		geometry->m_rigidbody->SetConstraints(m_xFreedom, m_yFreedom, m_rotationFreedom);
+		geometry->m_rigidbody->m_angularDrag = m_objectAngularDrag;
+		geometry->m_rigidbody->m_linearDrag = m_objectLinearDrag;
 		geometry->m_collider->SetMomentForObject();
 		m_allGeometry.push_back(geometry);
 
@@ -487,20 +483,17 @@ bool Game::HandleMouseRBUp()
 		{
 			geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, CAPSULE_GEOMETRY, m_mouseStart, rotationDegrees, 0.f, m_mouseEnd);
 			geometry->m_rigidbody->m_mass = INFINITY;
-			geometry->m_rigidbody->m_friction = m_objectFriction;
-			geometry->m_rigidbody->m_angularDrag = m_objectLinearDrag;
-			geometry->m_rigidbody->m_linearDrag = m_objectAngularDrag;
 			geometry->m_rigidbody->SetConstraints(false, false, false);
 		}
 		else
 		{
 			geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, CAPSULE_GEOMETRY, m_mouseStart, rotationDegrees, 0.f, m_mouseEnd);
+			geometry->m_rigidbody->m_mass = m_objectMass;
+			geometry->m_rigidbody->SetConstraints(m_xFreedom, m_yFreedom, m_rotationFreedom);
 		}
-		geometry->m_rigidbody->m_mass = m_objectMass;
 		geometry->m_rigidbody->m_friction = m_objectFriction;
-		geometry->m_rigidbody->m_angularDrag = m_objectLinearDrag;
-		geometry->m_rigidbody->m_linearDrag = m_objectAngularDrag;
-		geometry->m_rigidbody->SetConstraints(m_xFreedom, m_yFreedom, m_rotationFreedom);
+		geometry->m_rigidbody->m_angularDrag = m_objectAngularDrag;
+		geometry->m_rigidbody->m_linearDrag = m_objectLinearDrag;
 		geometry->m_collider->SetMomentForObject();
 		geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 
@@ -1085,6 +1078,19 @@ void Game::ChangeCurrentGeometry()
 	{
 		m_geometryType = BOX_GEOMETRY;
 	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::SaveToFile(const std::string& filePath)
+{
+	//Save all your shit to the file
+	int numObjects = (int)m_allGeometry.size();
+	for (int index = 0; index < numObjects; index++)
+	{
+		//Save all the object properties using XML
+
+	}
+
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
