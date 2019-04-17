@@ -42,6 +42,13 @@ Game::Game()
 	g_devConsole->SetBitmapFont(*m_squirrelFont);
 	g_debugRenderer->SetDebugFont(m_squirrelFont);
 	g_randomNumGen = new RandomNumberGenerator();
+
+	g_devConsole->PrintString(Rgba::BLUE, "this is a test string");
+	g_devConsole->PrintString(Rgba::RED, "this is also a test string");
+	g_devConsole->PrintString(Rgba::GREEN, "damn this dev console lit!");
+	g_devConsole->PrintString(Rgba::WHITE, "Last thing I printed");
+
+	g_eventSystem->SubscribeEventCallBackFn("TestEvent", TestEvent);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -114,6 +121,12 @@ STATIC bool Game::TestEvent(EventArgs& args)
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::HandleKeyPressed(unsigned char keyCode)
 {
+	if (g_devConsole->IsOpen())
+	{
+		g_devConsole->HandleKeyDown(keyCode);
+		return;
+	}
+
 	switch( keyCode )
 	{
 		case W_KEY:
@@ -335,6 +348,16 @@ void Game::HandleKeyReleased(unsigned char keyCode)
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
+void Game::HandleCharacter(unsigned char charCode)
+{
+	if (g_devConsole->IsOpen())
+	{
+		g_devConsole->HandleCharacter(charCode);
+		return;
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 bool Game::HandleMouseLBDown()
 {
 	int numGeometry = static_cast<int>(m_allGeometry.size()) ;
@@ -546,6 +569,14 @@ void Game::Render() const
 	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
 
 	g_renderContext->EndCamera();
+
+	if (g_devConsole->IsOpen())
+	{
+		g_renderContext->BindShader(m_shader);
+		g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
+		g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+		g_devConsole->Render(*g_renderContext, *m_devConsoleCamera, DEVCONSOLE_LINE_HEIGHT);
+	}
 
 }
 
@@ -808,9 +839,6 @@ void Game::DebugRenderToCamera() const
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::PostRender()
 {
-	//Debug bools
-	m_consoleDebugOnce = true;
-
 	if(!m_isDebugSetup)
 	{
 		//SetStartupDebugRenderObjects();
@@ -839,6 +867,13 @@ void Game::Update( float deltaTime )
 	if(m_selectedGeometry != nullptr)
 	{
 		m_selectedGeometry->m_transform.m_position = m_gameCursor->GetCursorPositon();
+	}
+
+	if (g_devConsole->GetFrameCount() > 1 && !m_consoleDebugOnce)
+	{
+		//We have rendered the 1st frame
+		m_devConsoleCamera->SetOrthoView(Vec2::ZERO, Vec2(WORLD_WIDTH, WORLD_HEIGHT));
+		m_consoleDebugOnce = true;
 	}
 
 	ClearGarbageEntities();	
@@ -1114,15 +1149,15 @@ void Game::RenderDebugObjectInfo() const
 
 			std::string printConstraints = "Constraints | X= ";
 			if(m_xFreedom)			{				printConstraints += "FREE";			}
-			else					{				printConstraints += "LOCKED";			}
+			else					{				printConstraints += "LOCKED";		}
 			
 			printConstraints += " | Y= ";
 			if (m_yFreedom)			{				printConstraints += "FREE";			}
-			else					{				printConstraints += "LOCKED";			}
+			else					{				printConstraints += "LOCKED";		}
 			
 			printConstraints += " | Rotation= ";
 			if (m_rotationFreedom)	{				printConstraints += "FREE";			}
-			else					{				printConstraints += "LOCKED";			}
+			else					{				printConstraints += "LOCKED";		}
 
 			m_squirrelFont->AddVertsForText2D(textVerts, offSetPos - Vec2(0.f, m_debugFontHeight * numStrings), m_debugFontHeight, printConstraints, Rgba::ORANGE);
 			++numStrings;

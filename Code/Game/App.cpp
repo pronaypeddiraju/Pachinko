@@ -2,6 +2,7 @@
 #include "Game/App.hpp"
 //Engine Systems
 #include "Engine/Audio/AudioSystem.hpp"
+#include "Engine/Core/Clock.hpp"
 #include "Engine/Core/DevConsole.hpp"
 #include "Engine/Core/EventSystems.hpp"
 #include "Engine/Core/NamedStrings.hpp"
@@ -17,10 +18,12 @@
 
 //Globals
 App* g_theApp = nullptr;
+Clock* g_gameClock = nullptr;
 
 //------------------------------------------------------------------------------------------------------------------------------
 App::App()
 {	
+	g_gameClock = new Clock(nullptr);
 }
 
 App::~App()
@@ -144,8 +147,8 @@ void App::EndFrame()
 	g_debugRenderer->EndFrame();
 	g_inputSystem->EndFrame();
 	g_audio->EndFrame();
-	g_devConsole->EndFrame();
 	g_eventSystem->EndFrame();
+	g_devConsole->EndFrame();
 }
 
 void App::BeginFrame()
@@ -163,9 +166,18 @@ void App::Update()
 	m_timeAtLastFrameBegin = m_timeAtThisFrameBegin;
 	m_timeAtThisFrameBegin = GetCurrentTimeSeconds();
 	float deltaTime = static_cast<float>(m_timeAtThisFrameBegin - m_timeAtLastFrameBegin);
-
+	
 	deltaTime = Clamp(deltaTime, 0.0f, 0.1f);
+	
+	g_gameClock->Step(deltaTime);
 
+	deltaTime = (float)g_gameClock->GetFrameTime();
+	if(deltaTime == 0.f)
+	{
+		return;
+	}
+
+	g_devConsole->UpdateConsole(deltaTime);
 	g_debugRenderer->Update(deltaTime);
 	m_game->Update(deltaTime);
 
@@ -183,6 +195,11 @@ void App::PostRender()
 
 bool App::HandleKeyPressed(unsigned char keyCode)
 {
+	if (keyCode == TILDY_KEY)
+	{
+		g_devConsole->ToggleOpenFull();
+	}
+
 	switch(keyCode)
 	{
 		case T_KEY:
@@ -214,6 +231,8 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 		case DEL_KEY:
 		case TAB_KEY:
 		case KEY_LESSER:
+		case ENTER_KEY:
+		case BACK_SPACE:
 		case KEY_GREATER:
 		case N_KEY:
 		case M_KEY:
@@ -239,6 +258,20 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 		m_game->StartUp();
 		return true;
 		break;
+		case KEY_ESC:
+		{
+			if (!g_devConsole->IsOpen())
+			{
+				//Shut the app
+				g_theApp->HandleQuitRequested();
+				return true;
+			}
+			else
+			{
+				m_game->HandleKeyPressed(keyCode);
+				return true;
+			}
+		}
 		default:
 			return false;
 		break;
@@ -280,7 +313,7 @@ bool App::HandleKeyReleased(unsigned char keyCode)
 bool App::HandleCharacter( unsigned char charCode )
 {
 	UNUSED(charCode);
-	//m_game->HandleCharacter(charCode);
+	m_game->HandleCharacter(charCode);
 	return false;
 }
 

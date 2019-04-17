@@ -38,6 +38,7 @@ public:
 
 	void					HandleKeyPressed( unsigned char keyCode );
 	void					HandleKeyReleased( unsigned char keyCode );
+	void					HandleCharacter( unsigned char charCode );
 
 	bool					HandleMouseLBDown();
 	bool					HandleMouseLBUp();
