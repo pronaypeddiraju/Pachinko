@@ -227,6 +227,7 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 		case NUM_5:
 		case NUM_6:
 		case NUM_7:
+		case LCTRL_KEY:
 			m_game->HandleKeyPressed(keyCode);
 			return true;
 		break;

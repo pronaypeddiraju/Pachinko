@@ -34,7 +34,6 @@ extern RenderContext* g_renderContext;
 extern AudioSystem* g_audio;
 
 //------------------------------------------------------------------------------------------------------------------------------
-
 Game::Game()
 {
 	m_isGameAlive = true;
@@ -45,6 +44,7 @@ Game::Game()
 	g_randomNumGen = new RandomNumberGenerator();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 Game::~Game()
 {
 	m_isGameAlive = false;
@@ -52,6 +52,7 @@ Game::~Game()
 	m_mainCamera = nullptr;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::StartUp()
 {
 	//Setup mouse startup values
@@ -92,6 +93,7 @@ void Game::StartUp()
 	m_shader->SetDepth(eCompareOp::COMPARE_LEQUAL, true);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::ShutDown()
 {
 	delete m_mainCamera;
@@ -101,6 +103,7 @@ void Game::ShutDown()
 	m_devConsoleCamera = nullptr;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 STATIC bool Game::TestEvent(EventArgs& args)
 {
 	UNUSED(args);
@@ -108,6 +111,7 @@ STATIC bool Game::TestEvent(EventArgs& args)
 	return true;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::HandleKeyPressed(unsigned char keyCode)
 {
 	switch( keyCode )
@@ -118,7 +122,12 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		case D_KEY:
 		//m_gameCursor->HandleKeyPressed(keyCode);
 		UpdateCameraMovement(keyCode);
-		break;		
+		break;
+		case LCTRL_KEY:
+		{
+			m_toggleUI = !m_toggleUI;
+		}
+		break;
 		case SPACE_KEY:
 		{
 			ToggleSimType();
@@ -183,6 +192,24 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		{
 			//Increase Angular Drag
 			m_objectAngularDrag += m_angularDragStep;
+		}
+		break;
+		case NUM_5:
+		{
+			//Toggle X freedom
+			m_xFreedom = !m_xFreedom;
+		}
+		break;
+		case NUM_6:
+		{
+			//Toggle Y freedom
+			m_yFreedom = !m_yFreedom;
+		}
+		break;
+		case NUM_7:
+		{
+			//Toggle rotation freedom
+			m_rotationFreedom = !m_rotationFreedom;
 		}
 		break;
 		case N_KEY:
@@ -260,6 +287,7 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 	}
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 int Game::GetNextValidGeometryIndex(int index)
 {
 	int vectorSize = static_cast<int>(m_allGeometry.size());
@@ -282,13 +310,13 @@ int Game::GetNextValidGeometryIndex(int index)
 	return end;
 }
 
-//Function that handles debug mode enabled
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::DebugEnabled()
 {
 	g_debugMode = !g_debugMode;
 }
 
-
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::HandleKeyReleased(unsigned char keyCode)
 {
 
@@ -306,6 +334,7 @@ void Game::HandleKeyReleased(unsigned char keyCode)
 	}
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 bool Game::HandleMouseLBDown()
 {
 	int numGeometry = static_cast<int>(m_allGeometry.size()) ;
@@ -342,6 +371,7 @@ bool Game::HandleMouseLBDown()
 	return true;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 bool Game::HandleMouseLBUp()
 {
 	if(m_selectedGeometry == nullptr)
@@ -357,6 +387,7 @@ bool Game::HandleMouseLBUp()
 	m_selectedGeometry->m_rigidbody->m_linearDrag = m_objectLinearDrag;
 	m_selectedGeometry->m_rigidbody->m_angularDrag = m_objectAngularDrag;
 	m_selectedGeometry->m_rigidbody->m_material.restitution = m_objectRestitution;
+	m_selectedGeometry->m_rigidbody->SetConstraints(m_xFreedom, m_yFreedom, m_rotationFreedom);
 
 	m_selectedGeometry = nullptr;
 	m_selectedIndex = -1;
@@ -364,12 +395,14 @@ bool Game::HandleMouseLBUp()
 	return true;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 bool Game::HandleMouseRBDown()
 {
 	m_mouseStart = GetClientToWorldPosition2D(g_windowContext->GetClientMousePosition(), g_windowContext->GetClientBounds());
 	return true;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 bool Game::HandleMouseRBUp()
 {
 
@@ -403,9 +436,11 @@ bool Game::HandleMouseRBUp()
 		{
 			geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, center, rotationDegrees, length);
 			geometry->m_rigidbody->m_mass = INFINITY;
+			//Set the new RB values to object
 			geometry->m_rigidbody->m_friction = m_objectFriction;
 			geometry->m_rigidbody->m_angularDrag = m_objectLinearDrag;
 			geometry->m_rigidbody->m_linearDrag = m_objectAngularDrag;
+			geometry->m_rigidbody->SetConstraints(false, false, false);
 		}
 		else
 		{
@@ -416,6 +451,7 @@ bool Game::HandleMouseRBUp()
 		geometry->m_rigidbody->m_friction = m_objectFriction;
 		geometry->m_rigidbody->m_angularDrag = m_objectLinearDrag;
 		geometry->m_rigidbody->m_linearDrag = m_objectAngularDrag;
+		geometry->m_rigidbody->SetConstraints(m_xFreedom, m_yFreedom, m_rotationFreedom);
 		geometry->m_collider->SetMomentForObject();
 		m_allGeometry.push_back(geometry);
 
@@ -430,6 +466,7 @@ bool Game::HandleMouseRBUp()
 			geometry->m_rigidbody->m_friction = m_objectFriction;
 			geometry->m_rigidbody->m_angularDrag = m_objectLinearDrag;
 			geometry->m_rigidbody->m_linearDrag = m_objectAngularDrag;
+			geometry->m_rigidbody->SetConstraints(false, false, false);
 		}
 		else
 		{
@@ -439,6 +476,7 @@ bool Game::HandleMouseRBUp()
 		geometry->m_rigidbody->m_friction = m_objectFriction;
 		geometry->m_rigidbody->m_angularDrag = m_objectLinearDrag;
 		geometry->m_rigidbody->m_linearDrag = m_objectAngularDrag;
+		geometry->m_rigidbody->SetConstraints(m_xFreedom, m_yFreedom, m_rotationFreedom);
 		geometry->m_collider->SetMomentForObject();
 		geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 
@@ -454,6 +492,7 @@ bool Game::HandleMouseRBUp()
 	return true;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 bool Game::HandleMouseScroll(float wheelDelta)
 {
 	m_zoomLevel += wheelDelta;
@@ -471,6 +510,7 @@ bool Game::HandleMouseScroll(float wheelDelta)
 	return true;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::Render() const
 {
 	//Get the ColorTargetView from rendercontext
@@ -492,7 +532,12 @@ void Game::Render() const
 
 	RenderWorldBounds();
 
-	RenderOnScreenInfo();
+	RenderPersistantUI();
+
+	if(m_toggleUI)
+	{
+		RenderOnScreenInfo();
+	}
 
 	RenderDebugObjectInfo();
 
@@ -504,6 +549,7 @@ void Game::Render() const
 
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderWorldBounds() const
 {
 	std::vector<Vertex_PCU> boxVerts;
@@ -512,6 +558,7 @@ void Game::RenderWorldBounds() const
 	g_renderContext->DrawVertexArray(boxVerts);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderOnScreenInfo() const
 {
 	//Count the number of objects
@@ -595,6 +642,57 @@ void Game::RenderOnScreenInfo() const
 	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringADrag, Rgba::YELLOW);
 	lineIndex += 3;
 
+	//Constraint X
+	std::string printStringXCon = "Constraint On X (Toggle with NUM_5) : ";
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringXCon, Rgba::WHITE);
+	Rgba constraintColor = Rgba::WHITE;
+	if (m_xFreedom)
+	{
+		constraintColor = Rgba::GREEN;
+		printStringXCon = "FREE";
+	}
+	else
+	{
+		constraintColor = Rgba::RED;
+		printStringXCon = "LOCKED";
+	}
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight * 40.f, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringXCon, constraintColor);
+	lineIndex++;
+
+	//Constraint Y
+	std::string printStringYCon = "Constraint On Y (Toggle with NUM_6) : ";
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringYCon, Rgba::WHITE);
+	constraintColor = Rgba::WHITE;
+	if (m_yFreedom)
+	{
+		constraintColor = Rgba::GREEN;
+		printStringYCon = "FREE";
+	}
+	else
+	{
+		constraintColor = Rgba::RED;
+		printStringYCon = "LOCKED";
+	}
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight * 40.f, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringYCon, constraintColor);
+	lineIndex++;
+
+	//Constraint rotation
+	std::string printStringRotCon = "Constraint On X (Toggle with NUM_5) : ";
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringRotCon, Rgba::WHITE);
+	constraintColor = Rgba::WHITE;
+	if (m_rotationFreedom)
+	{
+		constraintColor = Rgba::GREEN;
+		printStringRotCon = "FREE";
+	}
+	else
+	{
+		constraintColor = Rgba::RED;
+		printStringRotCon = "LOCKED";
+	}
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight * 40.f, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringRotCon, constraintColor);
+	lineIndex += 3;
+
 	//Simulation type
 	std::string printStringSimType = "Simulation (Space Key) : ";
 	if(m_isStatic)
@@ -654,24 +752,30 @@ void Game::RenderOnScreenInfo() const
 	g_renderContext->BindTextureViewWithSampler(0U, nullptr);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::RenderPersistantUI() const
+{
+	Vec2 camMinBounds = m_mainCamera->GetOrthoBottomLeft();
+	Vec2 camMaxBounds = m_mainCamera->GetOrthoTopRight();
+
+	//Toggle UI 
+	std::string printString = "Toggle Control Scheme (LCTRL Button) ";
+	std::vector<Vertex_PCU> textVerts;
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMaxBounds.x - 90.f, camMaxBounds.y - m_fontHeight), m_fontHeight, printString, Rgba::ORANGE);
+
+	g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
+	g_renderContext->DrawVertexArray(textVerts);
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderAllGeometry() const
 {
 	// display debug information
 	g_physicsSystem->DebugRender( g_renderContext ); 
 
-	/*
-	// overwrite the selected object with a white draw; 
-	if (m_selectedGeometry != nullptr) 
-	{
-		if(m_selectedGeometry->m_rigidbody == nullptr)
-		{
-			return;
-		}
-		m_selectedGeometry->m_rigidbody->DebugRender( g_renderContext, Rgba::WHITE ); 
-	}
-	*/
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::DebugRenderToScreen() const
 {
 	Camera& debugCamera = g_debugRenderer->Get2DCamera();
@@ -686,6 +790,7 @@ void Game::DebugRenderToScreen() const
 
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::DebugRenderToCamera() const
 {
 	Camera& debugCamera3D = *m_mainCamera;
@@ -700,6 +805,7 @@ void Game::DebugRenderToCamera() const
 	g_renderContext->EndCamera();
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::PostRender()
 {
 	//Debug bools
@@ -721,7 +827,7 @@ void Game::PostRender()
 	DebugRenderToScreen();
 }
 
-//Calls the UpdateShip function in playerShip
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::Update( float deltaTime )
 {
 	//UpdateCamera(deltaTime);
@@ -738,12 +844,14 @@ void Game::Update( float deltaTime )
 	ClearGarbageEntities();	
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::UpdateGeometry( float deltaTime )
 {
 	// let physics system play out
 	g_physicsSystem->Update(deltaTime);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::UpdateCamera(float deltaTime)
 {
 	m_mainCamera = new Camera();
@@ -771,8 +879,7 @@ void Game::UpdateCamera(float deltaTime)
 	m_mainCamera->Translate2D(translate2D);
 }
 
-
-//Function to update movement of the camera within the game
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::UpdateCameraMovement( unsigned char keyCode )
 {
 	switch( keyCode )
@@ -835,6 +942,7 @@ void Game::UpdateCameraMovement( unsigned char keyCode )
 
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::ClearGarbageEntities()
 {
 	//Kill any entity off screen
@@ -866,18 +974,21 @@ void Game::ClearGarbageEntities()
 	}
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::CheckCollisions()
 {
 	//Look for any collisions and call required methods for collision handling
 	
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 bool Game::IsAlive()
 {
 	//Check if alive
 	return m_isGameAlive;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 STATIC Vec2 Game::GetClientToWorldPosition2D( IntVec2 mousePosInClient, IntVec2 ClientBounds )
 {
 	Clamp(static_cast<float>(mousePosInClient.x), 0.f, static_cast<float>(ClientBounds.x));
@@ -889,11 +1000,13 @@ STATIC Vec2 Game::GetClientToWorldPosition2D( IntVec2 mousePosInClient, IntVec2 
 	return Vec2(posOnX, posOnY);
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::ToggleSimType()
 {
 	m_isStatic = !m_isStatic;
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::ChangeCurrentGeometry()
 {
 	//For future use cases
@@ -924,6 +1037,7 @@ void Game::ChangeCurrentGeometry()
 	}
 }
 
+//------------------------------------------------------------------------------------------------------------------------------
 void Game::RenderDebugObjectInfo() const
 {
 	Vec2 mousePos = GetClientToWorldPosition2D(g_windowContext->GetClientMousePosition(), g_windowContext->GetClientBounds());
@@ -995,9 +1109,22 @@ void Game::RenderDebugObjectInfo() const
 				
 			std::string printAngular = "Angular Velocity: ";
 			printAngular += std::to_string(m_allGeometry[index]->m_rigidbody->m_angularVelocity);
-
 			m_squirrelFont->AddVertsForText2D(textVerts, offSetPos - Vec2(0, m_debugFontHeight * numStrings), m_debugFontHeight, printAngular);
+			++numStrings;
 
+			std::string printConstraints = "Constraints | X= ";
+			if(m_xFreedom)			{				printConstraints += "FREE";			}
+			else					{				printConstraints += "LOCKED";			}
+			
+			printConstraints += " | Y= ";
+			if (m_yFreedom)			{				printConstraints += "FREE";			}
+			else					{				printConstraints += "LOCKED";			}
+			
+			printConstraints += " | Rotation= ";
+			if (m_rotationFreedom)	{				printConstraints += "FREE";			}
+			else					{				printConstraints += "LOCKED";			}
+
+			m_squirrelFont->AddVertsForText2D(textVerts, offSetPos - Vec2(0.f, m_debugFontHeight * numStrings), m_debugFontHeight, printConstraints, Rgba::ORANGE);
 			++numStrings;
 
 			g_renderContext->BindTextureViewWithSampler(0U, nullptr);

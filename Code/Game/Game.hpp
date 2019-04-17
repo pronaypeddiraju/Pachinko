@@ -48,6 +48,7 @@ public:
 	void					Render() const;
 	void					RenderWorldBounds() const;
 	void					RenderOnScreenInfo() const;
+	void					RenderPersistantUI() const;
 	void					RenderAllGeometry() const;
 	void					RenderDebugObjectInfo() const;
 
@@ -83,7 +84,7 @@ public:
 	std::vector<Geometry*>  m_allGeometry;
 	Geometry*				m_selectedGeometry = nullptr;
 	int						m_selectedIndex;
-	float					m_fontHeight = 2.0f;
+	float					m_fontHeight = 2.5f;
 
 	float					m_objectMass = 1.0f;
 	float					m_objectRestitution = 0.5f;
@@ -99,6 +100,10 @@ public:
 
 	float					m_massStep = 0.1f;
 	float					m_restitutionStep = 0.1f;
+
+	bool					m_xFreedom = true;
+	bool					m_yFreedom = true;
+	bool					m_rotationFreedom = true;
 
 	Camera*					m_mainCamera = nullptr;
 	Camera*					m_devConsoleCamera = nullptr;
@@ -116,6 +121,8 @@ public:
 	float					m_zoomMultiplier = 10.f;
 
 	AABB2					m_worldBounds;
+
+	bool					m_toggleUI = true;
 
 	//Debug Render Variable
 	bool					m_isDebugSetup = false;
