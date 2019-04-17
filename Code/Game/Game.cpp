@@ -70,7 +70,7 @@ void Game::StartUp()
 	m_worldBounds = AABB2(minWorldBounds, maxWorldBounds);
 
 	//Create the static floor object
-	Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, Vec2(100.f, 10.f), 0.f, 0.f, Vec2(100.f, 10.f), true);
+	Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, Vec2(150.f, 10.f), 0.f, 0.f, Vec2(150.f, 10.f), true);
 	geometry->m_rigidbody->m_mass = INFINITY;
 	geometry->m_collider->SetMomentForObject();
 	m_allGeometry.push_back(geometry);
@@ -147,6 +147,44 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		{
 			break;
 		}
+		case K_KEY:
+		{
+			//Friction increase
+			m_objectFriction -= m_frictionStep;
+			m_objectFriction = Clamp(m_objectFriction, 0.f, 1.f);
+		}
+		break;
+		case L_KEY:
+		{
+			//Friction decrease
+			m_objectFriction += m_frictionStep;
+			m_objectFriction = Clamp(m_objectFriction, 0.f, 1.f);
+		}
+		break;
+		case NUM_1:
+		{
+			//Decrease Linear Drag
+			m_objectLinearDrag -= m_linearDragStep;
+		}
+		break;
+		case NUM_2:
+		{
+			//Increase Linear Drag
+			m_objectLinearDrag += m_linearDragStep;
+		}
+		break;
+		case NUM_3:
+		{
+			//Decrease Angular Drag
+			m_objectAngularDrag -= m_angularDragStep;
+		}
+		break;
+		case NUM_4:
+		{
+			//Increase Angular Drag
+			m_objectAngularDrag += m_angularDragStep;
+		}
+		break;
 		case N_KEY:
 		m_objectMass -= m_massStep;
 		m_objectMass = Clamp(m_objectMass, 0.1f, 10.f);
@@ -174,6 +212,9 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 			Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, CAPSULE_GEOMETRY, m_gameCursor->GetCursorPositon());
 			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 			geometry->m_rigidbody->m_mass = INFINITY;
+			geometry->m_rigidbody->m_friction = m_objectFriction;
+			geometry->m_rigidbody->m_angularDrag = m_objectLinearDrag;
+			geometry->m_rigidbody->m_linearDrag = m_objectAngularDrag;
 			geometry->m_collider->SetMomentForObject();
 
 			m_allGeometry.push_back(geometry);
@@ -184,6 +225,9 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 			//F3 spawns a dynamic box on the cursor position
 			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, BOX_GEOMETRY, m_gameCursor->GetCursorPositon(), 0.f, 3.f, m_gameCursor->GetCursorPositon() + Vec2(10.f, 10.f));
 			geometry->m_rigidbody->m_mass = m_objectMass;
+			geometry->m_rigidbody->m_friction = m_objectFriction;
+			geometry->m_rigidbody->m_angularDrag = m_objectLinearDrag;
+			geometry->m_rigidbody->m_linearDrag = m_objectAngularDrag;
 			geometry->m_collider->SetMomentForObject();
 			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 
@@ -196,6 +240,9 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 			//F4 spawns a dynamic box on the cursor position (Rotated by 90 degrees
 			Geometry* geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, BOX_GEOMETRY, m_gameCursor->GetCursorPositon(), 90.f, 3.f, m_gameCursor->GetCursorPositon() + Vec2(10.f, 10.f));
 			geometry->m_rigidbody->m_mass = m_objectMass;
+			geometry->m_rigidbody->m_friction = m_objectFriction;
+			geometry->m_rigidbody->m_angularDrag = m_objectLinearDrag;
+			geometry->m_rigidbody->m_linearDrag = m_objectAngularDrag;
 			geometry->m_collider->SetMomentForObject();
 			geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 
@@ -306,6 +353,9 @@ bool Game::HandleMouseLBUp()
 	m_selectedGeometry->m_rigidbody->SetSimulationMode(g_selectedSimType);
 	m_selectedGeometry->m_rigidbody->m_velocity = Vec2::ZERO;
 	m_selectedGeometry->m_rigidbody->m_mass = m_objectMass;
+	m_selectedGeometry->m_rigidbody->m_friction = m_objectFriction;
+	m_selectedGeometry->m_rigidbody->m_linearDrag = m_objectLinearDrag;
+	m_selectedGeometry->m_rigidbody->m_angularDrag = m_objectAngularDrag;
 	m_selectedGeometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 
 	m_selectedGeometry = nullptr;
@@ -353,6 +403,9 @@ bool Game::HandleMouseRBUp()
 		{
 			geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, center, rotationDegrees, length);
 			geometry->m_rigidbody->m_mass = INFINITY;
+			geometry->m_rigidbody->m_friction = m_objectFriction;
+			geometry->m_rigidbody->m_angularDrag = m_objectLinearDrag;
+			geometry->m_rigidbody->m_linearDrag = m_objectAngularDrag;
 		}
 		else
 		{
@@ -360,6 +413,9 @@ bool Game::HandleMouseRBUp()
 		}
 		geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 		geometry->m_rigidbody->m_mass = m_objectMass;
+		geometry->m_rigidbody->m_friction = m_objectFriction;
+		geometry->m_rigidbody->m_angularDrag = m_objectLinearDrag;
+		geometry->m_rigidbody->m_linearDrag = m_objectAngularDrag;
 		geometry->m_collider->SetMomentForObject();
 		m_allGeometry.push_back(geometry);
 
@@ -371,12 +427,18 @@ bool Game::HandleMouseRBUp()
 		{
 			geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, CAPSULE_GEOMETRY, m_mouseStart, rotationDegrees, 0.f, m_mouseEnd);
 			geometry->m_rigidbody->m_mass = INFINITY;
+			geometry->m_rigidbody->m_friction = m_objectFriction;
+			geometry->m_rigidbody->m_angularDrag = m_objectLinearDrag;
+			geometry->m_rigidbody->m_linearDrag = m_objectAngularDrag;
 		}
 		else
 		{
 			geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, CAPSULE_GEOMETRY, m_mouseStart, rotationDegrees, 0.f, m_mouseEnd);
 		}
 		geometry->m_rigidbody->m_mass = m_objectMass;
+		geometry->m_rigidbody->m_friction = m_objectFriction;
+		geometry->m_rigidbody->m_angularDrag = m_objectLinearDrag;
+		geometry->m_rigidbody->m_linearDrag = m_objectAngularDrag;
 		geometry->m_collider->SetMomentForObject();
 		geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 
@@ -452,6 +514,7 @@ void Game::RenderWorldBounds() const
 
 void Game::RenderOnScreenInfo() const
 {
+	//Count the number of objects
 	int staticVectorSize = static_cast<int>(g_physicsSystem->m_rbBucket->m_RbBucket[STATIC_SIMULATION].size());
 	int dynamicVectorSize = static_cast<int>(g_physicsSystem->m_rbBucket->m_RbBucket[DYNAMIC_SIMULATION].size());
 	int staticCount = 0;
@@ -476,6 +539,9 @@ void Game::RenderOnScreenInfo() const
 		}
 	}
 
+	int lineIndex = 2;
+
+	//Display static and dynamic object count
 	std::string printStringStatic = "Number of Static Objects : ";
 	printStringStatic += std::to_string(staticCount);
 
@@ -483,25 +549,53 @@ void Game::RenderOnScreenInfo() const
 	printStringDynamic += std::to_string(dynamicCount);
 
 	std::vector<Vertex_PCU> textVerts;
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 2), m_fontHeight, printStringStatic, Rgba::WHITE);
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 3), m_fontHeight, printStringDynamic, Rgba::WHITE);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringStatic, Rgba::WHITE);
+	lineIndex++;
 
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringDynamic, Rgba::WHITE);
+	lineIndex += 3;
+
+	//Mass Information
 	std::string printStringMassClamp = "Mass Clamped between 0.1 and 10.0";
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 4), m_fontHeight, printStringMassClamp, Rgba::WHITE);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringMassClamp, Rgba::WHITE);
+	lineIndex++;
 
+	//Mass values
 	std::string printStringMass = "Object Mass (Adjust with N , M) : ";
 	printStringMass += std::to_string(m_objectMass);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringMass, Rgba::WHITE);
+	lineIndex++;
 
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 5), m_fontHeight, printStringMass, Rgba::YELLOW);
-
+	//Restitution information
 	std::string printStringRestitutionClamp = "Restitution Clamped between 0 and 1";
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 6), m_fontHeight, printStringRestitutionClamp, Rgba::WHITE);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringRestitutionClamp, Rgba::WHITE);
+	lineIndex++;
 
+	//Restitution values
 	std::string printStringRestitution = "Object Restitution (Adjust with < , > ) : ";
 	printStringRestitution += std::to_string(m_objectRestitution);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringRestitution, Rgba::WHITE);
+	lineIndex += 3;
 
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 7), m_fontHeight, printStringRestitution, Rgba::YELLOW);
+	//Friction
+	std::string printStringFriction = "Object Friction (Adjust with K , L ) : ";
+	printStringFriction += std::to_string(m_objectFriction);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringFriction, Rgba::YELLOW);
+	lineIndex++;
 
+	//Linear Drag
+	std::string printStringLDrag = "Object Linear Drag (Adjust with NUM_1 , NUM_2 ) : ";
+	printStringLDrag += std::to_string(m_objectLinearDrag);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringLDrag, Rgba::YELLOW);
+	lineIndex++;
+
+	//Angular Drag
+	std::string printStringADrag = "Object Angular Drag (Adjust with NUM_3 , NUM_4 ) : ";
+	printStringADrag += std::to_string(m_objectAngularDrag);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringADrag, Rgba::YELLOW);
+	lineIndex += 3;
+
+	//Simulation type
 	std::string printStringSimType = "Simulation (Space Key) : ";
 	if(m_isStatic)
 	{
@@ -511,7 +605,8 @@ void Game::RenderOnScreenInfo() const
 	{
 		printStringSimType += "Dynamic";
 	}
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 9), m_fontHeight, printStringSimType, Rgba::ORANGE);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringSimType, Rgba::ORANGE);
+	lineIndex++;
 
 	std::string printStringObjType = "Geometry (G Key) : ";
 	switch( m_geometryType )
@@ -536,10 +631,10 @@ void Game::RenderOnScreenInfo() const
 	break;
 	}
 
-	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * 10), m_fontHeight, printStringObjType, Rgba::YELLOW);
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringObjType, Rgba::ORANGE);
+	lineIndex++;
 
 	//Mouse Debug
-
 	std::string printStringMousePos = "Mouse Position : ";
 	printStringMousePos += std::to_string(g_windowContext->GetClientMousePosition().x);
 	printStringMousePos += ", ";
@@ -873,11 +968,29 @@ void Game::RenderDebugObjectInfo() const
 
 			++numStrings;
 
+			std::string printFriction = "Friction : ";
+			printFriction += std::to_string(m_allGeometry[index]->m_rigidbody->m_friction);
+			m_squirrelFont->AddVertsForText2D(textVerts, offSetPos - Vec2(0, m_debugFontHeight * numStrings), m_debugFontHeight, printFriction, Rgba::YELLOW);
+			++numStrings;
+
+			std::string printRestitution = "Restitution : ";
+			printRestitution += std::to_string(m_allGeometry[index]->m_rigidbody->m_material.restitution);
+			m_squirrelFont->AddVertsForText2D(textVerts, offSetPos - Vec2(0, m_debugFontHeight * numStrings), m_debugFontHeight, printRestitution);
+			++numStrings;
+
+			std::string printLDrag = "Linear Drag : ";
+			printLDrag += std::to_string(m_allGeometry[index]->m_rigidbody->m_linearDrag);
+			m_squirrelFont->AddVertsForText2D(textVerts, offSetPos - Vec2(0, m_debugFontHeight * numStrings), m_debugFontHeight, printLDrag, Rgba::YELLOW);
+			++numStrings;
+
+			std::string printADrag = "Angular Drag : ";
+			printADrag += std::to_string(m_allGeometry[index]->m_rigidbody->m_angularDrag);
+			m_squirrelFont->AddVertsForText2D(textVerts, offSetPos - Vec2(0, m_debugFontHeight * numStrings), m_debugFontHeight, printADrag, Rgba::YELLOW);
+			++numStrings;
+
 			std::string printMoment = "Moment of Inertia : ";
 			printMoment += std::to_string(m_allGeometry[index]->m_rigidbody->m_momentOfInertia);
-			
 			m_squirrelFont->AddVertsForText2D(textVerts, offSetPos - Vec2(0, m_debugFontHeight * numStrings), m_debugFontHeight, printMoment);
-
 			++numStrings;
 				
 			std::string printAngular = "Angular Velocity: ";

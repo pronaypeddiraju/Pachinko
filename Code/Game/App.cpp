@@ -218,6 +218,15 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 		case N_KEY:
 		case M_KEY:
 		case G_KEY:
+		case K_KEY:
+		case L_KEY:
+		case NUM_1:
+		case NUM_2:
+		case NUM_3:
+		case NUM_4:
+		case NUM_5:
+		case NUM_6:
+		case NUM_7:
 			m_game->HandleKeyPressed(keyCode);
 			return true;
 		break;
@@ -230,7 +239,6 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 		return true;
 		break;
 		default:
-			//Nothing to worry about
 			return false;
 		break;
 	}

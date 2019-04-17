@@ -88,6 +88,15 @@ public:
 	float					m_objectMass = 1.0f;
 	float					m_objectRestitution = 0.5f;
 
+	float					m_objectFriction = 0.5f;
+	float					m_frictionStep = 0.1f;
+
+	float					m_objectLinearDrag = 0.0f;
+	float					m_linearDragStep = 0.1f;
+	
+	float					m_objectAngularDrag = 0.0f;
+	float					m_angularDragStep = 0.1f;
+
 	float					m_massStep = 0.1f;
 	float					m_restitutionStep = 0.1f;
 

@@ -10,8 +10,8 @@ class RandomNumberGenerator;
 
 //------------------------------------------------------------------------------------------------------------------------------
 
-constexpr float WORLD_WIDTH = 200.f;
-constexpr float WORLD_HEIGHT = 100.f;
+constexpr float WORLD_WIDTH = 300.f;
+constexpr float WORLD_HEIGHT = 150.f;
 constexpr float WORLD_CENTER_X = WORLD_WIDTH / 2.f;
 constexpr float WORLD_CENTER_Y = WORLD_HEIGHT / 2.f;
 constexpr float SCREEN_ASPECT = 16.f/9.f;
