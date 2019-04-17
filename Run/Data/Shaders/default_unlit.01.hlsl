@@ -96,7 +96,7 @@ v2f_t VertexFunction(vs_input_t input)
    float4 view_pos = mul( VIEW, world_pos ); 
    float4 clip_pos = mul( PROJECTION, view_pos ); 
 
-   v2f.position = clip_pos; 
+   v2f.position = clip_pos.xyz; 
    v2f.color = input.color; 
    v2f.uv = input.uv; 
     

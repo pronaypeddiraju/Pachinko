@@ -1,6 +1,7 @@
 //------------------------------------------------------------------------------------------------------------------------------
 #include "Game/Game.hpp"
 //Engine Systems
+#include "Engine/Core/Clock.hpp"
 #include "Engine/Core/DevConsole.hpp"
 #include "Engine/Core/EventSystems.hpp"
 #include "Engine/Core/VertexUtils.hpp"
@@ -570,14 +571,6 @@ void Game::Render() const
 
 	g_renderContext->EndCamera();
 
-	if (g_devConsole->IsOpen())
-	{
-		g_renderContext->BindShader(m_shader);
-		g_renderContext->BindTextureViewWithSampler(0U, m_squirrelFont->GetTexture());
-		g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
-		g_devConsole->Render(*g_renderContext, *m_devConsoleCamera, DEVCONSOLE_LINE_HEIGHT);
-	}
-
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -761,6 +754,28 @@ void Game::RenderOnScreenInfo() const
 	}
 
 	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringObjType, Rgba::ORANGE);
+	lineIndex += 3;
+
+	//Time
+	std::string printStringTime = "Pause Game (X_KEY)";
+	Rgba timeColor = Rgba::GREEN;
+	if (g_gameClock->IsPaused())
+	{
+		timeColor = Rgba::RED;
+	}
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringTime, timeColor);
+	lineIndex++;
+
+	printStringTime = "Resume Game (Z_KEY)";
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringTime, Rgba::GREEN);
+	lineIndex++;
+
+	printStringTime = "Dilation 0.1 (C_KEY)";
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringTime, Rgba::WHITE);
+	lineIndex++;
+
+	printStringTime = "Dilation 2.0 (V_KEY)";
+	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringTime, Rgba::WHITE);
 	lineIndex++;
 
 	//Mouse Debug

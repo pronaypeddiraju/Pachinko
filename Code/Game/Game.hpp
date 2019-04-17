@@ -123,7 +123,7 @@ public:
 
 	AABB2					m_worldBounds;
 
-	bool					m_toggleUI = true;
+	bool					m_toggleUI = false;
 
 	//Debug Render Variable
 	bool					m_isDebugSetup = false;

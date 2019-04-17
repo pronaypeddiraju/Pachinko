@@ -3,10 +3,11 @@
 
 //------------------------------------------------------------------------------------------------------------------------------
 
-class RenderContext;
-class InputSystem;
 class AudioSystem;
+class Clock;
+class InputSystem;
 class RandomNumberGenerator;
+class RenderContext;
 
 //------------------------------------------------------------------------------------------------------------------------------
 
@@ -19,7 +20,7 @@ constexpr float SCREEN_ASPECT = 16.f/9.f;
 constexpr float CAMERA_SHAKE_REDUCTION_PER_SECOND = 1.f;
 constexpr float MAX_SHAKE = 2.0f;
 
-constexpr float DEVCONSOLE_LINE_HEIGHT = 2.0f;
+constexpr float DEVCONSOLE_LINE_HEIGHT = 3.0f;
 
 constexpr float BOX_MIN_WIDTH = 2.5f;
 constexpr float BOX_MAX_WIDTH = 10.0f;
@@ -31,7 +32,8 @@ constexpr float MAX_ZOOM_STEPS = 10.f;
 
 constexpr float CLIENT_ASPECT = 2.0f; // We are requesting a 1:1 aspect (square) window area
 
-extern RenderContext* g_renderContext;
-extern InputSystem* g_inputSystem;
 extern AudioSystem* g_audio;
+extern Clock* g_gameClock;
+extern InputSystem* g_inputSystem;
 extern RandomNumberGenerator* g_randomNumGen;
+extern RenderContext* g_renderContext;

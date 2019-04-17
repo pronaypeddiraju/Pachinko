@@ -11,6 +11,7 @@
 #include "Engine/Input/InputSystem.hpp"
 #include "Engine/Math/MathUtils.hpp"
 #include "Engine/Math/PhysicsSystem.hpp"
+#include "Engine/Renderer/BitmapFont.hpp"
 #include "Engine/Renderer/DebugRender.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
 //Game Systems
@@ -19,11 +20,13 @@
 //Globals
 App* g_theApp = nullptr;
 Clock* g_gameClock = nullptr;
+Clock* g_devConsoleClock = nullptr;
 
 //------------------------------------------------------------------------------------------------------------------------------
 App::App()
 {	
 	g_gameClock = new Clock(nullptr);
+	g_devConsoleClock = new Clock(nullptr);
 }
 
 App::~App()
@@ -168,8 +171,10 @@ void App::Update()
 	float deltaTime = static_cast<float>(m_timeAtThisFrameBegin - m_timeAtLastFrameBegin);
 	
 	deltaTime = Clamp(deltaTime, 0.0f, 0.1f);
-	
 	g_gameClock->Step(deltaTime);
+	g_devConsoleClock->Step(deltaTime);
+
+	g_devConsole->UpdateConsole((float)g_devConsoleClock->GetFrameTime());
 
 	deltaTime = (float)g_gameClock->GetFrameTime();
 	if(deltaTime == 0.f)
@@ -177,7 +182,6 @@ void App::Update()
 		return;
 	}
 
-	g_devConsole->UpdateConsole(deltaTime);
 	g_debugRenderer->Update(deltaTime);
 	m_game->Update(deltaTime);
 
@@ -186,6 +190,14 @@ void App::Update()
 void App::Render() const
 {
 	m_game->Render();
+
+	if (g_devConsole->IsOpen())
+	{
+		g_renderContext->BindShader(m_game->m_shader);
+		g_renderContext->BindTextureViewWithSampler(0U, m_game->m_squirrelFont->GetTexture());
+		g_renderContext->SetModelMatrix(Matrix44::IDENTITY);
+		g_devConsole->Render(*g_renderContext, *m_game->m_devConsoleCamera, DEVCONSOLE_LINE_HEIGHT);
+	}
 }
 
 void App::PostRender()
@@ -202,15 +214,36 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 
 	switch(keyCode)
 	{
-		case T_KEY:
-			//Implement code to slow down the ship (deltaTime /= 10)
-			m_isSlowMo = true;
-			return true;
+		case Z_KEY:
+		{
+			g_gameClock->ForceResume();
+		}
+// 			Implement code to slow down the ship (deltaTime /= 10)
+// 						m_isSlowMo = true;
+// 						return true;
 		break;
-		case  P_KEY:
-			//Implement code to pause game (deltaTime = 0)
-			m_isPaused = !m_isPaused;
-			return true;
+		case  X_KEY:
+		{
+			g_gameClock->Pause();
+		}
+// 			Implement code to pause game (deltaTime = 0)
+// 						m_isPaused = !m_isPaused;
+// 						return true;
+		break;
+		case C_KEY:
+		{
+			g_gameClock->Dilate(0.1);
+		}
+		break;
+		case V_KEY:
+		{
+			g_gameClock->Dilate(2);
+		}
+		break;
+		case B_KEY:
+		{
+			g_gameClock->ForceStep(0.1f);
+		}
 		break;
 		case UP_ARROW:
 		case RIGHT_ARROW:
@@ -273,9 +306,9 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 			}
 		}
 		default:
-			return false;
 		break;
 	}
+	return false;
 }
 
 bool App::HandleKeyReleased(unsigned char keyCode)
