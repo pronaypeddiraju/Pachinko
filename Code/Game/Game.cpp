@@ -1180,7 +1180,7 @@ void Game::LoadFromFile(const std::string& filePath)
 		delete m_allGeometry[index];
 		m_allGeometry[index] = nullptr;
 	}
-
+	 
 	m_allGeometry.erase(m_allGeometry.begin(), m_allGeometry.end());
 
 	//Open the xml file and parse it
