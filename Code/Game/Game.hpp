@@ -76,6 +76,7 @@ public:
 
 	// XML File save and load methods
 	void					SaveToFile(const std::string& filePath);
+	void					LoadFromFile(const std::string& filePath);
 
 private:
 

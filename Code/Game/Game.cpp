@@ -235,6 +235,12 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 			SaveToFile("Data/Gameplay/SaveGame.xml");
 		}
 		break;
+		case NUM_9:
+		{
+			//Load the game
+			LoadFromFile("Data/Gameplay/SaveGame.xml");
+		}
+		break;
 		case N_KEY:
 		m_objectMass -= m_massStep;
 		m_objectMass = Clamp(m_objectMass, 0.1f, 10.f);
@@ -1145,7 +1151,7 @@ void Game::SaveToFile(const std::string& filePath)
 		}
 
 		//Transform stuff
-		XMLElement* tranformElem = saveDoc.NewElement("Transfrom");
+		XMLElement* tranformElem = saveDoc.NewElement("Transform");
 		geometry->InsertEndChild(tranformElem);
 
 		tranformElem->SetAttribute("Position", m_allGeometry[index]->m_transform.m_position.GetAsString().c_str());
@@ -1162,6 +1168,151 @@ void Game::SaveToFile(const std::string& filePath)
 	{
 		printf("Error: %i\n", eResult);
 		ASSERT_RECOVERABLE(true, Stringf("Error: %i\n", eResult));
+	}
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+void Game::LoadFromFile(const std::string& filePath)
+{
+	//Delete all existing objects
+	for (int index = 0; index < (int)m_allGeometry.size(); index++)
+	{
+		delete m_allGeometry[index];
+		m_allGeometry[index] = nullptr;
+	}
+
+	m_allGeometry.erase(m_allGeometry.begin(), m_allGeometry.end());
+
+	//Open the xml file and parse it
+	tinyxml2::XMLDocument saveDoc;
+	saveDoc.LoadFile(filePath.c_str());
+
+	if (saveDoc.ErrorID() != tinyxml2::XML_SUCCESS)
+	{
+		//printf("\n >> Error loading XML file from %s ", filePath);
+		//printf("\n >> Error ID : %i ", saveDoc.ErrorID());
+		//printf("\n >> Error line number is : %i", saveDoc.ErrorLineNum());
+		//printf("\n >> Error name : %s", saveDoc.ErrorName());
+		
+		ERROR_AND_DIE(">> Error loading Save Game XML file ");
+		return;
+	}
+	else
+	{
+		//Load from the file and spawn required objects
+		XMLElement* rootElement = saveDoc.RootElement();
+
+		XMLElement* geometry = rootElement->FirstChildElement();
+
+		while(geometry != nullptr)
+		{
+			//Read RB data first
+			XMLElement* elem = geometry->FirstChildElement("RigidBody");
+
+			int type = ParseXmlAttribute(*elem, "SimType", 0);
+			int shape = ParseXmlAttribute(*elem, "Shape", 0);
+			float mass = ParseXmlAttribute(*elem, "Mass", 0.1f);
+			float friction = ParseXmlAttribute(*elem, "Friction", 0.f);
+			float angularDrag = ParseXmlAttribute(*elem, "AngularDrag", 0.f);
+			float linearDrag = ParseXmlAttribute(*elem, "LinearDrag", 0.f);
+			Vec3 freedom = ParseXmlAttribute(*elem, "Freedom", Vec3::ONE);
+			float moment = ParseXmlAttribute(*elem, "Moment", INFINITY);
+			float restitution = ParseXmlAttribute(*elem, "Restitution", 1.f);
+
+			//Read Collider data 
+			elem = elem->NextSiblingElement("Collider");
+			Geometry* entity = nullptr;
+
+			switch (shape)
+			{
+			case COLLIDER_BOX:
+			{
+				Vec2 center = ParseXmlAttribute(*elem, "Center", Vec2::ZERO);
+				Vec2 size = ParseXmlAttribute(*elem, "Size", Vec2::ZERO);
+				float rotation = ParseXmlAttribute(*elem, "Rotation", 0.f);
+
+				if (type == STATIC_SIMULATION)
+				{
+					if (size.x == 80.f)
+					{
+						entity = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, center, rotation, size.y, Vec2::ZERO, true);
+					}
+					else
+					{
+						entity = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, center, rotation, size.y);
+					}
+					entity->m_rigidbody->m_mass = mass;
+					entity->m_rigidbody->SetConstraints(false, false, false);
+				}
+				else
+				{
+					entity = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, BOX_GEOMETRY, center, rotation, size.y);
+					entity->m_rigidbody->m_mass = mass;
+					entity->m_rigidbody->SetConstraints(freedom);
+				}
+				entity->m_rigidbody->m_material.restitution = restitution;
+				entity->m_rigidbody->m_friction = friction;
+				entity->m_rigidbody->m_angularDrag = angularDrag;
+				entity->m_rigidbody->m_linearDrag = linearDrag;
+				entity->m_rigidbody->m_momentOfInertia = moment;
+			}
+			break;
+			case COLLIDER_CAPSULE:
+			{
+				Vec2 start = ParseXmlAttribute(*elem, "Start", Vec2::ZERO);
+				Vec2 end = ParseXmlAttribute(*elem, "End", Vec2::ZERO);
+				float radius = ParseXmlAttribute(*elem, "Radius", 0.f);
+				UNUSED(radius);
+
+				Vec2 disp = start - end;
+				Vec2 norm = disp.GetNormalized();
+				float length = disp.GetLength();
+
+				Vec2 center = end + length * norm * 0.5f;
+				float rotationDegrees = disp.GetAngleDegrees() + 90.f;
+
+				if (type == STATIC_SIMULATION)
+				{
+					entity = new Geometry(*g_physicsSystem, STATIC_SIMULATION, CAPSULE_GEOMETRY, start, rotationDegrees, 0.f, end);
+					entity->m_rigidbody->m_mass = INFINITY;
+					entity->m_rigidbody->SetConstraints(false, false, false);
+				}
+				else
+				{
+					entity = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, CAPSULE_GEOMETRY, start, rotationDegrees, 0.f, end);
+					entity->m_rigidbody->m_mass = mass;
+					entity->m_rigidbody->SetConstraints(freedom);
+				}
+				entity->m_rigidbody->m_friction = friction;
+				entity->m_rigidbody->m_angularDrag = angularDrag;
+				entity->m_rigidbody->m_linearDrag = linearDrag;
+				entity->m_rigidbody->m_momentOfInertia = moment;
+				entity->m_rigidbody->m_material.restitution = restitution;
+			}
+			break;
+			default:
+			{
+				ERROR_AND_DIE("The rigidbody shape in XML file is unknown");
+			}
+			break;
+			}
+
+			//Read Collider data 
+			elem = elem->NextSiblingElement("Transform");
+
+			Vec2 position = ParseXmlAttribute(*elem, "Position", Vec2::ZERO);
+			float rotation = ParseXmlAttribute(*elem, "Rotation", 0.f);
+			Vec2 scale = ParseXmlAttribute(*elem, "Scale", Vec2::ZERO);
+
+			entity->m_transform.m_position = position;
+			entity->m_transform.m_rotation = rotation;
+			entity->m_transform.m_scale = scale;
+
+			m_allGeometry.push_back(entity);
+
+			//Proceed to next sibling
+			geometry = geometry->NextSiblingElement();
+		}
 	}
 }
 
