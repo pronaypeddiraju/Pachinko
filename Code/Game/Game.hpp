@@ -1,9 +1,10 @@
 //------------------------------------------------------------------------------------------------------------------------------
 #pragma once
 //Engine systems
+#include "Engine/Audio/AudioSystem.hpp"
+#include "Engine/Core/XMLUtils/XMLUtils.hpp"
 #include "Engine/Math/AABB2.hpp"
 #include "Engine/Math/Vertex_PCU.hpp"
-#include "Engine/Audio/AudioSystem.hpp"
 
 //Game systems
 #include "Game/GameCommon.hpp"
@@ -73,6 +74,7 @@ public:
 	void					ToggleSimType();
 	void					ChangeCurrentGeometry();
 
+	// XML File save and load methods
 	void					SaveToFile(const std::string& filePath);
 
 private:

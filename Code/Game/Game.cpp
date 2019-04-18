@@ -1,6 +1,8 @@
 //------------------------------------------------------------------------------------------------------------------------------
 #include "Game/Game.hpp"
 //Engine Systems
+#include "Engine/Commons/ErrorWarningAssert.hpp"
+#include "Engine/Commons/StringUtils.hpp"
 #include "Engine/Core/Clock.hpp"
 #include "Engine/Core/DevConsole.hpp"
 #include "Engine/Core/EventSystems.hpp"
@@ -18,6 +20,7 @@
 #include "Engine/Renderer/DebugRender.hpp"
 #include "Engine/Renderer/RenderContext.hpp"
 #include "Engine/Renderer/Shader.hpp"
+#include <ThirdParty/TinyXML2/tinyxml2.h>
 
 //Game systems
 #include "Game/GameCursor.hpp"
@@ -224,6 +227,12 @@ void Game::HandleKeyPressed(unsigned char keyCode)
 		{
 			//Toggle rotation freedom
 			m_rotationFreedom = !m_rotationFreedom;
+		}
+		break;
+		case NUM_8:
+		{
+			//Save the game
+			SaveToFile("Data/Gameplay/SaveGame.xml");
 		}
 		break;
 		case N_KEY:
@@ -1084,13 +1093,76 @@ void Game::ChangeCurrentGeometry()
 void Game::SaveToFile(const std::string& filePath)
 {
 	//Save all your shit to the file
+	tinyxml2::XMLDocument saveDoc;
+
+	tinyxml2::XMLNode* rootNode = saveDoc.NewElement("SavedGeometry");
+	saveDoc.InsertFirstChild(rootNode);
+
 	int numObjects = (int)m_allGeometry.size();
 	for (int index = 0; index < numObjects; index++)
 	{
 		//Save all the object properties using XML
+		XMLElement* geometry = saveDoc.NewElement("GeometryData");
+		XMLElement* rbElem = saveDoc.NewElement("RigidBody");
+		geometry->InsertEndChild(rbElem);
 
+		//Rigidbody data
+		rbElem->SetAttribute("SimType", m_allGeometry[index]->m_rigidbody->GetSimulationType());
+		rbElem->SetAttribute("Shape", m_allGeometry[index]->m_collider->m_colliderType);
+		rbElem->SetAttribute("Mass", m_allGeometry[index]->m_rigidbody->m_mass);
+		rbElem->SetAttribute("Friction", m_allGeometry[index]->m_rigidbody->m_friction);
+		rbElem->SetAttribute("AngularDrag", m_allGeometry[index]->m_rigidbody->m_angularDrag);
+		rbElem->SetAttribute("LinearDrag", m_allGeometry[index]->m_rigidbody->m_linearDrag);
+		rbElem->SetAttribute("Freedom", m_allGeometry[index]->m_rigidbody->m_constraints.GetAsString().c_str());
+		rbElem->SetAttribute("Moment", m_allGeometry[index]->m_rigidbody->m_momentOfInertia);
+		rbElem->SetAttribute("Restitution", m_allGeometry[index]->m_rigidbody->m_material.restitution);
+
+		XMLElement* colElem = saveDoc.NewElement("Collider");
+		geometry->InsertEndChild(colElem);
+
+		//Collider data
+		eColliderType2D type = m_allGeometry[index]->m_collider->GetType();
+		Collider2D* collider = m_allGeometry[index]->m_collider;
+		
+		switch (type)
+		{
+			case COLLIDER_BOX:
+			{
+				BoxCollider2D* boxCollider = reinterpret_cast<BoxCollider2D*>(collider);
+				colElem->SetAttribute("Center", boxCollider->GetWorldShape().GetCenter().GetAsString().c_str());
+				colElem->SetAttribute("Size", (Vec2(boxCollider->GetWorldShape().GetHalfExtents()) * 2.f).GetAsString().c_str());
+				colElem->SetAttribute("Rotation", boxCollider->m_rigidbody->m_rotation);
+			}
+			break;
+			case COLLIDER_CAPSULE:
+			{
+				CapsuleCollider2D* col = reinterpret_cast<CapsuleCollider2D*>(collider);
+				colElem->SetAttribute("Start", col->GetReferenceShape().m_start.GetAsString().c_str());
+				colElem->SetAttribute("End", col->GetReferenceShape().m_end.GetAsString().c_str());
+				colElem->SetAttribute("Radius", col->GetCapsuleRadius());
+			}
+			break;
+		}
+
+		//Transform stuff
+		XMLElement* tranformElem = saveDoc.NewElement("Transfrom");
+		geometry->InsertEndChild(tranformElem);
+
+		tranformElem->SetAttribute("Position", m_allGeometry[index]->m_transform.m_position.GetAsString().c_str());
+		tranformElem->SetAttribute("Rotation", m_allGeometry[index]->m_transform.m_rotation);
+		tranformElem->SetAttribute("Scale", m_allGeometry[index]->m_transform.m_scale.GetAsString().c_str());
+		
+		rootNode->InsertEndChild(geometry);
 	}
+	
+	//Save to the file
+	tinyxml2::XMLError eResult = saveDoc.SaveFile(filePath.c_str());
 
+	if (eResult != tinyxml2::XML_SUCCESS)
+	{
+		printf("Error: %i\n", eResult);
+		ASSERT_RECOVERABLE(true, Stringf("Error: %i\n", eResult));
+	}
 }
 
 //------------------------------------------------------------------------------------------------------------------------------

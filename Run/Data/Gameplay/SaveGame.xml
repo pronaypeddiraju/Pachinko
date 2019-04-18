@@ -1,0 +1,32 @@
+<SavedGeometry>
+    <GeometryData>
+        <RigidBody SimType="0" Shape="3" Mass="inf" Friction="1" AngularDrag="0.1" LinearDrag="0.1" Freedom="0.000000,1.000000,0.000000" Moment="inf" Restitution="1"/>
+        <Collider Center="150.000000,10.000000" Size="80.000000,10.000000" Rotation="0"/>
+        <Transfrom Position="150.000000,10.000000" Rotation="0" Scale="1.000000,1.000000"/>
+    </GeometryData>
+    <GeometryData>
+        <RigidBody SimType="1" Shape="3" Mass="1" Friction="0.5" AngularDrag="0" LinearDrag="0" Freedom="1.000000,1.000000,1.000000" Moment="133.86325" Restitution="0.5"/>
+        <Collider Center="165.355865,25.554546" Size="9.416273,38.957577" Rotation="270.01556"/>
+        <Transfrom Position="165.355865,25.554546" Rotation="0" Scale="1.000000,1.000000"/>
+    </GeometryData>
+    <GeometryData>
+        <RigidBody SimType="1" Shape="2" Mass="1" Friction="0.5" AngularDrag="0" LinearDrag="0" Freedom="1.000000,1.000000,1.000000" Moment="256.12778" Restitution="0.5"/>
+        <Collider Start="167.717880,73.421928" End="147.075684,26.578074" Radius="2.9896553"/>
+        <Transfrom Position="159.806580,17.998133" Rotation="0" Scale="1.000000,1.000000"/>
+    </GeometryData>
+    <GeometryData>
+        <RigidBody SimType="1" Shape="2" Mass="1" Friction="0.5" AngularDrag="0" LinearDrag="0" Freedom="1.000000,1.000000,1.000000" Moment="137.70888" Restitution="0.5"/>
+        <Collider Start="116.456421,100.830566" End="150.000000,115.780731" Radius="2.832392"/>
+        <Transfrom Position="124.873756,27.164930" Rotation="0" Scale="1.000000,1.000000"/>
+    </GeometryData>
+    <GeometryData>
+        <RigidBody SimType="1" Shape="3" Mass="1" Friction="0.5" AngularDrag="0" LinearDrag="0" Freedom="1.000000,1.000000,1.000000" Moment="145.38742" Restitution="0.5"/>
+        <Collider Center="210.283035,4.967289" Size="6.056415,41.327579" Rotation="220.46321"/>
+        <Transfrom Position="210.283035,4.967289" Rotation="0" Scale="1.000000,1.000000"/>
+    </GeometryData>
+    <GeometryData>
+        <RigidBody SimType="1" Shape="2" Mass="1" Friction="0.5" AngularDrag="0" LinearDrag="0" Freedom="1.000000,1.000000,1.000000" Moment="61.529255" Restitution="0.5"/>
+        <Collider Start="155.848633,118.770760" End="165.481659,98.504982" Radius="3.6986487"/>
+        <Transfrom Position="160.664963,44.005642" Rotation="0" Scale="1.000000,1.000000"/>
+    </GeometryData>
+</SavedGeometry>
