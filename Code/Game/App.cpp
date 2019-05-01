@@ -69,7 +69,7 @@ void App::LoadGameBlackBoard()
 void App::StartUp()
 {
 	//Load initial black board here
-	LoadGameBlackBoard();
+	//LoadGameBlackBoard();
 
 	//Create event system
 	g_eventSystem = new EventSystems();

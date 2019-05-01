@@ -1067,24 +1067,6 @@ void Game::ToggleSimType()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::ChangeCurrentGeometry()
 {
-	//For future use cases
-	
-	/*
-	int geometryID = m_geometryType;
-
-	if(geometryID < NUM_GEOMETRY_TYPES)
-	{
-		geometryID++;
-	}
-	else
-	{
-		geometryID = 0;
-	}
-
-	m_geometryType = eGeometryType(geometryID);
-	*/
-
-	//Only for A03
 	if(m_geometryType == BOX_GEOMETRY)
 	{
 		m_geometryType = CAPSULE_GEOMETRY;

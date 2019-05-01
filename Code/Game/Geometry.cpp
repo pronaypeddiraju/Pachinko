@@ -11,7 +11,7 @@
 
 Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType, eGeometryType geometryType, const Vec2& cursorPosition, float rotationDegrees, float length, const Vec2& endPos, bool staticFloor)
 {
-	// First, give it a rigidbody to represent itself in the physics system
+	// First, give it a rigid body to represent itself in the physics system
 	m_rigidbody = physicsSystem.CreateRigidbody(simulationType);
 	m_rigidbody->SetSimulationMode( simulationType ); 
 
@@ -69,10 +69,6 @@ Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType,
 		if(!staticFloor)
 		{
 			size = Vec2(g_randomNumGen->GetRandomFloatInRange(BOX_MIN_WIDTH, BOX_MAX_WIDTH), length);
-			
-			//rotationDegrees = g_randomNumGen->GetRandomFloatInRange(0.f, 360.f);
-			//For easy debugging let's make it 45 degrees
-			//rotationDegrees = 0.f;
 		}
 		else
 		{
