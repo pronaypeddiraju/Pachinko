@@ -212,23 +212,23 @@ bool App::HandleKeyPressed(unsigned char keyCode)
 		g_devConsole->ToggleOpenFull();
 	}
 
+	if (g_devConsole->IsOpen())
+	{
+		g_devConsole->HandleKeyDown(keyCode);
+		return true;
+	}
+
 	switch(keyCode)
 	{
 		case Z_KEY:
 		{
 			g_gameClock->ForceResume();
 		}
-// 			Implement code to slow down the ship (deltaTime /= 10)
-// 						m_isSlowMo = true;
-// 						return true;
 		break;
 		case  X_KEY:
 		{
 			g_gameClock->Pause();
 		}
-// 			Implement code to pause game (deltaTime = 0)
-// 						m_isPaused = !m_isPaused;
-// 						return true;
 		break;
 		case C_KEY:
 		{

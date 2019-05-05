@@ -112,6 +112,11 @@ Geometry::Geometry(PhysicsSystem& physicsSystem, eSimulationType simulationType,
 
 Geometry::~Geometry()
 {	
-	delete m_rigidbody;
-	m_rigidbody = nullptr;
+	//delete m_rigidbody;
+	//m_rigidbody = nullptr;
+
+	if (m_rigidbody != nullptr)
+	{
+		m_rigidbody->m_isAlive = false;
+	}
 }

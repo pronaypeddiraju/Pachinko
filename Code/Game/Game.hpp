@@ -18,6 +18,7 @@ class Image;
 class GameCursor;
 class Geometry;
 class Shader;
+class Trigger2D;
 struct Camera;
 struct IntVec2;
 
@@ -31,7 +32,11 @@ public:
 	~Game();
 	
 	static bool				TestEvent(EventArgs& args);
-	
+	static bool				StaticCollisionEvent(EventArgs& args);
+	static bool				DynamicCollisionEvent(EventArgs& args);
+	static bool				BoxTriggerEnter(EventArgs& args);
+	static bool				BoxTriggerExit(EventArgs& args);
+
 	void					StartUp();
 	void					ShutDown();
 	int						GetNextValidGeometryIndex(int index);
@@ -134,4 +139,7 @@ public:
 	bool					m_isDebugSetup = false;
 	Vec2					m_debugOffset = Vec2(20.f, 20.f);
 	float					m_debugFontHeight = 2.f;
+
+	Trigger2D*				m_boxTrigger = nullptr;
+	Trigger2D*				m_capsuleTrigger = nullptr;
 };

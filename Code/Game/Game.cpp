@@ -14,6 +14,7 @@
 #include "Engine/Math/PhysicsSystem.hpp"
 #include "Engine/Math/RandomNumberGenerator.hpp"
 #include "Engine/Math/RigidBodyBucket.hpp"
+#include "Engine/Math/Trigger2D.hpp"
 #include "Engine/Renderer/BitmapFont.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Renderer/ColorTargetView.hpp"
@@ -53,6 +54,12 @@ Game::Game()
 	g_devConsole->PrintString(Rgba::WHITE, "Last thing I printed");
 
 	g_eventSystem->SubscribeEventCallBackFn("TestEvent", TestEvent);
+
+	g_eventSystem->SubscribeEventCallBackFn("StaticCollisionEvent", StaticCollisionEvent);
+	g_eventSystem->SubscribeEventCallBackFn("DynamicCollisionEvent", DynamicCollisionEvent);
+
+	g_eventSystem->SubscribeEventCallBackFn("BoxTriggerEnter", BoxTriggerEnter);
+	g_eventSystem->SubscribeEventCallBackFn("BoxTriggerExit", BoxTriggerExit);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -85,7 +92,16 @@ void Game::StartUp()
 	Geometry* geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, Vec2(150.f, 10.f), 0.f, 0.f, Vec2(150.f, 10.f), true);
 	geometry->m_rigidbody->m_mass = INFINITY;
 	geometry->m_collider->SetMomentForObject();
+	geometry->m_collider->SetCollisionEvent("StaticCollisionEvent");
 	m_allGeometry.push_back(geometry);
+
+	//Create an OBB trigger to test
+	m_boxTrigger = g_physicsSystem->CreateTrigger(STATIC_SIMULATION);
+	m_boxTrigger->SetCollider(new BoxCollider2D(Vec2(30.f, 10.f), Vec2(5.f, 5.f), 0.f));
+	m_boxTrigger->m_collider->SetColliderType(COLLIDER_BOX);
+	m_boxTrigger->SetOnEnterEvent("BoxTriggerEnter");
+	m_boxTrigger->SetOnExitEvent("BoxTriggerExit");
+	g_physicsSystem->AddTriggerToVector(m_boxTrigger);
 
 	//Create the Camera and setOrthoView
 	m_mainCamera = new Camera();
@@ -119,6 +135,38 @@ STATIC bool Game::TestEvent(EventArgs& args)
 {
 	UNUSED(args);
 	g_devConsole->PrintString(Rgba::YELLOW, "This a test event called from Game.cpp");
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::StaticCollisionEvent(EventArgs& args)
+{
+	UNUSED(args);
+	g_devConsole->PrintString(Rgba::YELLOW, "Collision Event Called for Static Object");
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+bool Game::DynamicCollisionEvent(EventArgs& args)
+{
+	UNUSED(args);
+	g_devConsole->PrintString(Rgba::GREEN, "Collision Event Called for Dynamic Object");
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::BoxTriggerEnter(EventArgs& args)
+{
+	UNUSED(args);
+	g_devConsole->PrintString(Rgba::YELLOW, "Box Trigger Enter");
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::BoxTriggerExit(EventArgs& args)
+{
+	UNUSED(args);
+	g_devConsole->PrintString(Rgba::GREEN, "Box Trigger Exit");
 	return true;
 }
 
@@ -476,12 +524,14 @@ bool Game::HandleMouseRBUp()
 			geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, BOX_GEOMETRY, center, rotationDegrees, length);
 			geometry->m_rigidbody->m_mass = INFINITY;
 			geometry->m_rigidbody->SetConstraints(false, false, false);
+			geometry->m_rigidbody->m_collider->SetCollisionEvent("StaticCollisionEvent");
 		}
 		else
 		{
 			geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, BOX_GEOMETRY, center, rotationDegrees, length);
 			geometry->m_rigidbody->m_mass = m_objectMass;
 			geometry->m_rigidbody->SetConstraints(m_xFreedom, m_yFreedom, m_rotationFreedom);
+			geometry->m_rigidbody->m_collider->SetCollisionEvent("DynamicCollisionEvent");
 		}
 		geometry->m_rigidbody->m_material.restitution = m_objectRestitution;
 		geometry->m_rigidbody->m_friction = m_objectFriction;
@@ -499,12 +549,14 @@ bool Game::HandleMouseRBUp()
 			geometry = new Geometry(*g_physicsSystem, STATIC_SIMULATION, CAPSULE_GEOMETRY, m_mouseStart, rotationDegrees, 0.f, m_mouseEnd);
 			geometry->m_rigidbody->m_mass = INFINITY;
 			geometry->m_rigidbody->SetConstraints(false, false, false);
+			geometry->m_rigidbody->m_collider->SetCollisionEvent("StaticCollisionEvent");
 		}
 		else
 		{
 			geometry = new Geometry(*g_physicsSystem, DYNAMIC_SIMULATION, CAPSULE_GEOMETRY, m_mouseStart, rotationDegrees, 0.f, m_mouseEnd);
 			geometry->m_rigidbody->m_mass = m_objectMass;
 			geometry->m_rigidbody->SetConstraints(m_xFreedom, m_yFreedom, m_rotationFreedom);
+			geometry->m_rigidbody->m_collider->SetCollisionEvent("DynamicCollisionEvent");
 		}
 		geometry->m_rigidbody->m_friction = m_objectFriction;
 		geometry->m_rigidbody->m_angularDrag = m_objectAngularDrag;
@@ -876,6 +928,8 @@ void Game::PostRender()
 
 	//All screen Debug information
 	DebugRenderToScreen();
+
+	ClearGarbageEntities();
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -899,7 +953,6 @@ void Game::Update( float deltaTime )
 		m_consoleDebugOnce = true;
 	}
 
-	ClearGarbageEntities();	
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -1004,9 +1057,14 @@ void Game::UpdateCameraMovement( unsigned char keyCode )
 void Game::ClearGarbageEntities()
 {
 	//Kill any entity off screen
-
 	for (int geometryIndex = 0; geometryIndex < m_allGeometry.size(); geometryIndex++)
 	{
+		if (!m_allGeometry[geometryIndex]->m_rigidbody->m_isAlive)
+		{
+			m_allGeometry[geometryIndex]->m_collider = nullptr;
+			m_allGeometry[geometryIndex]->m_rigidbody = nullptr;
+		}
+
 		if(m_allGeometry[geometryIndex] == nullptr)
 		{
 			continue;
@@ -1027,8 +1085,22 @@ void Game::ClearGarbageEntities()
 			delete m_allGeometry[geometryIndex];
 			m_allGeometry[geometryIndex] = nullptr;
 			m_allGeometry.erase(m_allGeometry.begin() + geometryIndex);
+			geometryIndex--;
 		}
 
+	}
+
+	g_physicsSystem->PurgeDeletedObjects();
+
+	for (int geometryIndex = 0; geometryIndex < m_allGeometry.size(); geometryIndex++)
+	{
+		if (m_allGeometry[geometryIndex]->m_rigidbody == nullptr)
+		{
+			delete m_allGeometry[geometryIndex];
+			m_allGeometry[geometryIndex] = nullptr;
+			m_allGeometry.erase(m_allGeometry.begin() + geometryIndex);
+			geometryIndex--;
+		}
 	}
 }
 
@@ -1307,6 +1379,11 @@ void Game::RenderDebugObjectInfo() const
 	int numGeometry = static_cast<int>(m_allGeometry.size());
 	for(int index = 0; index < numGeometry; index++)
 	{
+		if (m_allGeometry[index]->m_collider == nullptr)
+		{
+			continue;
+		}
+
 		if(m_allGeometry[index]->m_collider->Contains(m_gameCursor->GetCursorPositon()))
 		{
 			//Print the debug information
