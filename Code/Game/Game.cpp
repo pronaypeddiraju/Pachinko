@@ -60,6 +60,9 @@ Game::Game()
 
 	g_eventSystem->SubscribeEventCallBackFn("BoxTriggerEnter", BoxTriggerEnter);
 	g_eventSystem->SubscribeEventCallBackFn("BoxTriggerExit", BoxTriggerExit);
+
+	g_eventSystem->SubscribeEventCallBackFn("CapsuleTriggerEnter", CapsuleTriggerEnter);
+	g_eventSystem->SubscribeEventCallBackFn("CapsuleTriggerExit", CapsuleTriggerExit);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------
@@ -102,6 +105,18 @@ void Game::StartUp()
 	m_boxTrigger->SetOnEnterEvent("BoxTriggerEnter");
 	m_boxTrigger->SetOnExitEvent("BoxTriggerExit");
 	g_physicsSystem->AddTriggerToVector(m_boxTrigger);
+
+	//Create a capsule trigger to test
+	m_capsuleTrigger = g_physicsSystem->CreateTrigger(STATIC_SIMULATION);
+	m_capsuleTrigger->SetCollider(new CapsuleCollider2D(Vec2(50.f, 40.f), Vec2(80.f, 40.f), 5.f));
+	m_capsuleTrigger->m_collider->SetColliderType(COLLIDER_CAPSULE);
+	Transform2 transform;
+	transform.m_position = Vec2(65.f, 40.f);
+	m_capsuleTrigger->SetTransform(transform);
+	m_capsuleTrigger->SetOnEnterEvent("CapsuleTriggerEnter");
+	m_capsuleTrigger->SetOnExitEvent("CapsuleTriggerExit");
+	g_physicsSystem->AddTriggerToVector(m_capsuleTrigger);
+
 
 	//Create the Camera and setOrthoView
 	m_mainCamera = new Camera();
@@ -167,6 +182,22 @@ STATIC bool Game::BoxTriggerExit(EventArgs& args)
 {
 	UNUSED(args);
 	g_devConsole->PrintString(Rgba::GREEN, "Box Trigger Exit");
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::CapsuleTriggerEnter(EventArgs& args)
+{
+	UNUSED(args);
+	g_devConsole->PrintString(Rgba::YELLOW, "Capsule Trigger Enter");
+	return true;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------
+STATIC bool Game::CapsuleTriggerExit(EventArgs& args)
+{
+	UNUSED(args);
+	g_devConsole->PrintString(Rgba::GREEN, "Capsule Trigger Exit");
 	return true;
 }
 
@@ -761,7 +792,7 @@ void Game::RenderOnScreenInfo() const
 	lineIndex++;
 
 	//Constraint rotation
-	std::string printStringRotCon = "Constraint On X (Toggle with NUM_5) : ";
+	std::string printStringRotCon = "Constraint On Z (Toggle with NUM_7) : ";
 	m_squirrelFont->AddVertsForText2D(textVerts, Vec2(camMinBounds.x + m_fontHeight, camMaxBounds.y - m_fontHeight * lineIndex), m_fontHeight, printStringRotCon, Rgba::WHITE);
 	constraintColor = Rgba::WHITE;
 	if (m_rotationFreedom)

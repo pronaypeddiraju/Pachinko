@@ -36,6 +36,8 @@ public:
 	static bool				DynamicCollisionEvent(EventArgs& args);
 	static bool				BoxTriggerEnter(EventArgs& args);
 	static bool				BoxTriggerExit(EventArgs& args);
+	static bool				CapsuleTriggerEnter(EventArgs& args);
+	static bool				CapsuleTriggerExit(EventArgs& args);
 
 	void					StartUp();
 	void					ShutDown();
