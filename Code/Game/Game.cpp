@@ -1183,7 +1183,7 @@ void Game::ChangeCurrentGeometry()
 //------------------------------------------------------------------------------------------------------------------------------
 void Game::SaveToFile(const std::string& filePath)
 {
-	//Save all your shit to the file
+	//Save all the geometry to the file
 	tinyxml2::XMLDocument saveDoc;
 
 	tinyxml2::XMLNode* rootNode = saveDoc.NewElement("SavedGeometry");
