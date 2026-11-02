@@ -27,3 +27,7 @@ The user should also be able to possess one of the objects.  Pressing TAB should
 - **ARROW KEYS** - Move the object. 
 
 - Mouse on object shows a debug view for the object, Clicking allows you to grab an object and change it's properties
+
+## License
+
+The code I wrote here is under the [MIT License](LICENSE). See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for what it doesn't cover.
